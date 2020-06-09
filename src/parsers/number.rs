@@ -13,7 +13,7 @@ impl super::Parser for Number {
     }
 
     fn do_work(&self, s: &str) -> String {
-        let num: isize = s.parse().unwrap();
+        let num: usize = s.parse().unwrap();
         println!("{}", num);
         String::from("some string ")
     }
