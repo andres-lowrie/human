@@ -1,8 +1,8 @@
 human
 ======
 
-<sub>Machines -> Human</sub>
-<sub>Human -> Machines</sub>
+Machines -> Human
+Human -> Machines
 
 ## Idea
 
