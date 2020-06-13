@@ -1,20 +1,43 @@
 ## Number
 
-Turns numbers into groups of thousands.
+Breaks up a contiguous number.
 
-Useful for visualizing large numbers
+```gherkin
+Feature: number
 
-### logic
+	Scenario: Take a number and output in words
+		Given <input> like "100000000"
+		When ran like
+			`human number -w <input>`
+		Then it should output
+			"one hundred million"
 
+	Scenario: Take a number and output visual separators
+		Given <input> like "100000000"
+		When ran like
+			`human number -g <input>`
+		Then it should output
+			"100,000,000"
 ```
-1000 -> 1,000
-10000 -> 10,000
-100000 -> 100,000
-1000000 -> 1,000,000
-10000000 -> 10,000,000
-100000000 -> 100,000,000
-1000000000 -> 1,000,000,000
-```
 
-- has to at least 4 characters
-- while chars are still there, from the back of string, move 3 left, add comma
+## Size
+
+Translates byte sizes into size acronym
+
+```gherkin
+Feature: size
+
+	Scenario: Take a number that represents bytes and give back nearest acronym
+		Given <input> like "5000000000"
+		When ran like
+			`human size <input>`
+		Then it should output
+			"5G"
+
+	Scenario:  Take a size in computer acronym, and output bytes
+		Given <input> like "5G" or "5 gigs"
+		When ran like
+			`human size <input>`
+		Then it should output
+			"5000000000"
+```
