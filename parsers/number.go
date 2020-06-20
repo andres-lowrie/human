@@ -80,5 +80,5 @@ func (n *NumberGroup) DoIntoHuman(s string) string {
 
 // DoFromHuman ...
 func (n *NumberGroup) DoFromHuman(s string) string {
-	return ""
+	return strings.Replace(s, ",", "", -1)
 }

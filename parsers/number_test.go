@@ -82,3 +82,30 @@ func TestNumberGroupDoIntoHuman(t *testing.T) {
 		})
 	}
 }
+
+func TestNumberGroupDoFromHuman(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{"1,000", "1000"},
+		{"10,000", "10000"},
+		{"100,000", "100000"},
+		{"1,000,000", "1000000"},
+		{"10,000,000", "10000000"},
+		{"100,000,000", "100000000"},
+		{"1,000,000,000", "1000000000"},
+		{"10,000,000,000", "10000000000"},
+		{"100,000,000,000", "100000000000"},
+	}
+
+	numbergroup := NewNumberGroup()
+	for i, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			got := numbergroup.DoFromHuman(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+		})
+	}
+}
