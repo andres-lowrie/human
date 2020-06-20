@@ -31,6 +31,29 @@ func TestNumberGroupCanParseIntoHuman(t *testing.T) {
 	}
 }
 
+func TestNumberGroupCanParseFromHuman(t *testing.T) {
+	tests := []struct {
+		in  string
+		out bool
+	}{
+		{"999", false},
+		{"1000", false},
+		{"1,000", true},
+		{"1,00f", false},
+		{"1,000,000", true},
+	}
+
+	numbergroup := NewNumberGroup()
+	for i, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			got := numbergroup.CanParseFromHuman(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
+			}
+		})
+	}
+}
+
 func TestNumberGroupDoIntoHuman(t *testing.T) {
 	tests := []struct {
 		in  string

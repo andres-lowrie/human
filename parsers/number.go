@@ -26,7 +26,29 @@ func (n *NumberGroup) CanParseIntoHuman(s string) bool {
 
 // CanParseFromHuman ...
 func (n *NumberGroup) CanParseFromHuman(s string) bool {
-	return false
+
+	conds := []func(string) bool{
+		// Should at least be the number 1 thousand
+		func(s string) bool {
+			return len(s) >= 4
+		},
+		// Can't have letters in it
+		func(s string) bool {
+			match, _ := regexp.MatchString(`[a-z]+`, s)
+			return !match
+		},
+		// Needs to have a comma in it
+		func(s string) bool {
+			return strings.Contains(s, ",")
+		},
+	}
+
+	for _, c := range conds {
+		if c(s) == false {
+			return false
+		}
+	}
+	return true
 }
 
 // DoIntoHuman takes a string made up of contiguous "0-9" characters and
