@@ -1,31 +1,62 @@
 package parsers
 
-// Number handles strings made up of contiguous "0-9" characters
-type Number struct{}
+import (
+	"regexp"
+	"strings"
+)
 
-// NewNumber constructs a Number struct
-func NewNumber() *Number {
-	return &Number{}
+// NumberGroup handles strings made up of contiguous "0-9" characters converts
+// to and from groupings
+type NumberGroup struct{}
+
+// NewNumberGroup constructs a NumberGroup struct
+func NewNumberGroup() *NumberGroup {
+	return &NumberGroup{}
 }
 
 // CanParseIntoHuman ...
-func (n *Number) CanParseIntoHuman(s string) bool {
-	return false
+func (n *NumberGroup) CanParseIntoHuman(s string) bool {
+	if len(s) < 4 {
+		return false
+	}
+
+	match, _ := regexp.MatchString(`[a-z]+`, s)
+	return !match
 }
 
-// CanParseFromHuman determines if the input is something this parser can handle
-func (n *Number) CanParseFromHuman(s string) bool {
+// CanParseFromHuman ...
+func (n *NumberGroup) CanParseFromHuman(s string) bool {
 	return false
 }
 
 // DoIntoHuman takes a string made up of contiguous "0-9" characters and
-// returns numbers words or a grouped number
-func (n *Number) DoIntoHuman(s string) string {
-	return ""
+// returns number groupings
+func (n *NumberGroup) DoIntoHuman(s string) string {
+
+	// Figure out where to place commas
+	var buf strings.Builder
+	bufLen := len(s) - 1
+
+	for i := 0; i <= bufLen; i++ {
+		if i%3 == 0 && i != 0 {
+			buf.WriteRune(',')
+		}
+		buf.WriteByte(s[bufLen-i])
+	}
+
+	// Output the string
+	var out strings.Builder
+	outStr := buf.String()
+	outLen := len(outStr) - 1
+
+	for i := outLen; i >= 0; i-- {
+		out.WriteByte(outStr[i])
+	}
+
+	return out.String()
 }
 
-// DoFromHuman takes a string made up of @TODO "number words" or "number
-// abbreviations" and returns a string made up of contiguous "0-9" characters.
-func (n *Number) DoFromHuman(s string) string {
+// DoFromHuman ...
+func (n *NumberGroup) DoFromHuman(s string) string {
 	return ""
 }
