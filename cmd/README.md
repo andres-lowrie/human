@@ -1,0 +1,49 @@
+# cmd
+
+## Calling Pattern
+
+Abstractly, calling looks like this
+
+```shell
+human <direction> <format> <args> <input>
+```
+
+_where_:
+
+`direction`: is one of `into` or `from` indicating what type of input to expect
+
+`format`: is one of the commands outlined further down in this document
+
+`args`: are optional settings for a given format which can be _flags_ or _options_ as per each format
+
+`input`: is a string to operate on
+
+### direction
+
+Controls whether the parsers are going to translate the `<input>` into a human
+or machine format and vice versa.
+
+The idea is that the entire command should be read from left to right which
+should allow the direction option to make more sense hopefully:
+
+> Translate human format _into_ machine format for \<input\>
+>
+> `human --into machine-format <input>`
+
+Going the other way it would be:
+
+> Give me human format _from_ this machine-format for \<input\>
+>
+> `human --from machine-format <input>`
+
+### args
+
+Args is shorthand for _flags_ and _options_, each command defines its own set
+of arguments as needed. We should strive to make arguments optional when
+possible to keep the calling pattern simple.
+
+### format
+
+Formats are what each command represent, they are broken up as such
+
+@TODO make a website out of the markdown files , parse and load man pages
