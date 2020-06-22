@@ -1,0 +1,61 @@
+name = "<format name as close to parser name as possible>"
+synopsis = "human <name> <args>"
+description = """
+Long description here
+"""
+
+[flags]
+
+  [flags.<letter>]
+  mnemonic = "something to remember the flag"
+  desc = "longer description"
+
+  [flags.<letter2>]
+  mnemonic = "something to remember the flag"
+  desc = "longer description"
+
+  ...
+
+[options]
+
+  [options.<name>]
+  desc = "longer description"
+  default = "what it defaults to"
+
+  [options.<name2>]
+  desc = "longer description"
+  default = "what it defaults to"
+
+  ...
+
+[files]
+
+  [files.<name-of-file>]
+  desc = "longer description"
+
+  [files.<name-of-file>]
+  desc = "longer description"
+
+  ...
+
+[environment]
+
+  [environment.<name-of-var-caps>]
+  desc = "longer description"
+  default = "what it defaults to"
+
+  [environment.<name-of-var-caps>]
+  desc = "longer description"
+  default = "what it defaults to"
+
+  ...
+
+  examples = [
+    """
+    Example one here
+    """,
+    """
+    Example Two here
+    """,
+    ...
+  ]
