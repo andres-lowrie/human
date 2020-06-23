@@ -15,7 +15,7 @@ func main() {
 	args := cmd.ParseCliArgs(os.Args[1:])
 
 	// The idea here is that human will print out all parseable values for each
-	// knows parser (the below map); ie: arguments are used to make it more
+	// known parser (the below map); ie: arguments are used to make it more
 	// specific similar to `dig`, where `dig` with no args gives all the
 	// information it has, and then something like `dig +short` gives you a whole
 	// lot less

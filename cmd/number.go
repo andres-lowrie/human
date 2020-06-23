@@ -21,7 +21,7 @@ func (n *Number) Run(direction string, input string, args CliArgs) string {
 	if _, ok := args.Flags["g"]; ok {
 		p = parsers.NewNumberGroup()
 	} else {
-		// @TODO implement numberword parser
+		p = parsers.NewEmpty()
 	}
 
 	if direction == "from" && p.CanParseFromHuman(input) {
