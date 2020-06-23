@@ -13,18 +13,6 @@ import (
 // converts to word strings of the greatest power
 type NumberWord struct{}
 
-// isNumber takes a string and verifies that it only contains the characters [0-9]
-func (n *NumberWord) isNumber(s string) bool {
-  return false
-}
-
-// isDelimitedNumber takes a string and checks it for a 3 place delimited form
-// e.g. '1,000,000', '1.000.000', '1 000 000'
-// using common delimiters
-func (n *NumberWord) isDelimitedNumber(s string) bool {
-  return false
-}
-
 // CanParseIntoHuman ...
 func (n *NumberWord) CanParseIntoHuman(s string) bool {
   // is it 4 or more characters? (e.g. is it => 1000)
@@ -39,7 +27,7 @@ func (n *NumberWord) CanParseIntoHuman(s string) bool {
 // CanParseFromHuman ...
 func (n *NumberWord) CanParseFromHuman(s string) bool {
   // is it a digit word combo? (e.g. 48 billion) /\d+ [a-zA-Z]+)
-  // is the word in the enumerators?
+  // is the word in the translation map?
   return false
 }
 
@@ -47,7 +35,7 @@ func (n *NumberWord) CanParseFromHuman(s string) bool {
 func (n *NumberWord) DoIntoHuman(s string) string {
   // Create a NumberGroup from string
   // Split the NumberGroup string into an array ng[]
-  // Compare the len of ng[] with numwords enum index
+  // Compare the len of ng[] with numwords translation index
   // Round ng[1] to hundreds place (e.g. 155 => 200) = decimals
   // Return ng[0]+ "." + decimal  + " " + numwords[len(ng)] 
   return "100.0 FOOillion"
@@ -57,7 +45,7 @@ func (n *NumberWord) DoIntoHuman(s string) string {
 // Only works with highest power (e.g. 100.3 Billion, not 100,300 Million)
 func (n *NumberWord) DoFromHuman(s string) string {
   // Split numbers from word
-  // Get powers from enumerator map
+  // Get powers from translation map
   // Return ( numbers * 10^foo )
   return "100"
 }
