@@ -44,7 +44,7 @@ func (n *NumberGroup) CanParseFromHuman(s string) bool {
 	}
 
 	for _, c := range conds {
-		if c(s) == false {
+		if !c(s) {
 			return false
 		}
 	}
