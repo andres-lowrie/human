@@ -6,7 +6,7 @@
 package parsers
 
 import (
-  //"regexp"
+  "regexp"
 )
 
 // NumberWord handles strings made of contiguous "0-9" characters
@@ -21,11 +21,20 @@ func NewNumberWord() *NumberWord {
 // CanParseIntoHuman ...
 func (n *NumberWord) CanParseIntoHuman(s string) bool {
   // is it 4 or more characters? (e.g. is it => 1000)
-  // is it a number? /[0-9]*/
-  // is it a delimited number? /(0-9{1,3}(?:[,.; ])){1,}/
-  // is it less than the max? 
-    // - Less than chars (300000)
-    // - Less than 100 ^ 303
+  if len(s) < 4 {
+    return false
+  }
+
+  // is it a (delimited[,. ]) number?
+  match, _ := regexp.MatchString(`^(([0-9]+)|([0-9]{1,3}[., ])+[0-9]{1,3})$`, s)
+  if match {
+    // is it less than the max? 
+      //  300000 max places plus delimiters
+    if len(s) < 400000 {
+      return true
+    }
+  }
+  // everything else is not a number
   return false
 }
 
