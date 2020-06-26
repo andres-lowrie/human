@@ -6,12 +6,17 @@
 package parsers
 
 import (
-  "regexp"
+  //"regexp"
 )
 
 // NumberWord handles strings made of contiguous "0-9" characters
 // converts to word strings of the greatest power
 type NumberWord struct{}
+
+// NewNumberWord construcs a NumberWord struct
+func NewNumberWord() *NumberWord {
+  return &NumberWord{}
+}
 
 // CanParseIntoHuman ...
 func (n *NumberWord) CanParseIntoHuman(s string) bool {
