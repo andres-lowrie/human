@@ -6,7 +6,10 @@
 package parsers
 
 import (
+  "math"
   "regexp"
+  "strings"
+  "strconv"
 )
 
 // NumberWord handles strings made of contiguous "0-9" characters
@@ -47,12 +50,38 @@ func (n *NumberWord) CanParseFromHuman(s string) bool {
 
 // DoIntoHuman ...
 func (n *NumberWord) DoIntoHuman(s string) string {
-  // Create a NumberGroup from string
-  // Split the NumberGroup string into an array ng[]
-  // Compare the len of ng[] with numwords translation index
-  // Round ng[1] to hundreds place (e.g. 155 => 200) = decimals
-  // Return ng[0]+ "." + decimal  + " " + numwords[len(ng)] 
-  return "100.0 FOOillion"
+	trans := map[int]struct{
+		name string
+		powers int
+	}{
+    1: {"hundred", 2}, // not used
+    2: {"thousand", 3},
+    3: {"million", 6},
+    4: {"billion", 9},
+    5: {"trillion", 12},
+	}
+
+  // Strip delimiters
+  r, _ := regexp.Compile("[^0-9]")
+  s = r.ReplaceAllString(s, "")
+
+  // Use NumberGroup to make an array
+  numgroup := NewNumberGroup()
+  numbers := strings.Split(numgroup.DoIntoHuman(s), ",")
+
+  var out strings.Builder
+  out.WriteString( numbers[0] )
+
+  // Round second group to nearest hundreds (i.e. 1 decimal place)
+  x, _ := strconv.ParseFloat(numbers[1], 64)
+  decimal := int(math.Round( x / 100.0 ))
+
+  if decimal > 0 {
+    out.WriteString( "." + strconv.Itoa( decimal ))
+  }
+  out.WriteString( " " + trans[ len(numbers) ].name )
+
+  return out.String()
 }
 
 // DoFromHuman ...
