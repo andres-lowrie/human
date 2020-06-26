@@ -14,6 +14,11 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
 		{"12af", false},
 		// Lower bounds
 		{"999", false},
+    // Delimited numbers
+    {"1,000,000", true},
+    {"1.000.000", true},
+    {"1 000 000", true},
+    {"1a000a000", false},
 		// Anything else should be parsable
 		{"1000", true},
 		{"100000000000", true},
