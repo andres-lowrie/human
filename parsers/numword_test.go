@@ -9,12 +9,14 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
 		in  string
 		out bool
 	}{
-		// Only numbergroups
+		// Only numbers
 		{"aba", false},
 		{"12af", false},
+    {"123,afb,$$@", false},
 		// Lower bounds
 		{"999", false},
-    // Delimited numbers
+    // Upper bound is 400000 characters...
+    // Delimiters
     {"1,000,000", true},
     {"1.000.000", true},
     {"1 000 000", true},
@@ -36,3 +38,34 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
   }
 }
 
+func TestNumberWordDoIntoHuman(t *testing.T) {
+  tests := []struct {
+    in string
+    out string
+  }{
+    // Each position
+		{"1000", "1 thousand"},
+		{"10000", "10 thousand"},
+		{"100000", "100 thousand"},
+    // First decimal
+		{"12345678", "12.3 million"},
+    // Delimiters
+    {"1,000,000", "1 million"},
+    {"1.000.000", "1 million"},
+    {"1 000 000", "1 million"},
+    // All the names
+		{"1000000", "1 million"},
+		{"1000000000", "1 billion"},
+		{"1000000000000", "1 trillion"},
+  }
+
+  numword := NewNumberWord()
+  for i, tt := range tests {
+    t.Run(tt.in, func(t *testing.T) {
+      got := numword.DoIntoHuman(tt.in)
+      if got != tt.out {
+        t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+      }
+    })
+  }
+}
