@@ -24,30 +24,25 @@ func (n *NumberGroup) CanParseIntoHuman(s string) bool {
 	return !match
 }
 
-// CanParseFromHuman ...
+// CanParseFromHuman determines if input is within bounds
+// in that the input:
+// 	Should at least be the number 1 thousand
+// 	Can't have letters in it
+// 	Needs to have a comma in it
 func (n *NumberGroup) CanParseFromHuman(s string) bool {
 
-	conds := []func(string) bool{
-		// Should at least be the number 1 thousand
-		func(s string) bool {
-			return len(s) >= 4
-		},
-		// Can't have letters in it
-		func(s string) bool {
-			match, _ := regexp.MatchString(`[a-z]+`, s)
-			return !match
-		},
-		// Needs to have a comma in it
-		func(s string) bool {
-			return strings.Contains(s, ",")
-		},
+	if len(s) <= 4 {
+		return false
 	}
 
-	for _, c := range conds {
-		if c(s) == false {
-			return false
-		}
+	if match, _ := regexp.MatchString(`[a-z]+`, s); match {
+		return false
 	}
+
+	if !strings.Contains(s, ",") {
+		return false
+	}
+
 	return true
 }
 
