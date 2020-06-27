@@ -13,9 +13,11 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
 		{"aba", false},
 		{"12af", false},
 		{"123,afb,$$@", false},
-		// Lower bounds
+		// Lower/Upper Bounds
 		{"999", false},
-		// Upper bound is 400000 characters...
+        {"1000", true},
+        {"100,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", true},
+        {"1,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", false},
 		// Delimiters
 		{"1,000,000", true},
 		{"1.000.000", true},
@@ -57,6 +59,7 @@ func TestNumberWordDoIntoHuman(t *testing.T) {
 		{"1000000", "1 million"},
 		{"1000000000", "1 billion"},
 		{"1000000000000", "1 trillion"},
+        {"1,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", "1 vigintillion"},
 	}
 
 	numword := NewNumberWord()
