@@ -1,7 +1,7 @@
 // Given a number in string form
 // Return the number in word form of the greatest power (e.g. 300,100,000,000 => 300.1 Billion)
 // Lower limit > Thousands (e.g. xxx,000) # Numbers below this are in hundreds and can be expressed numerically
-// Upper limit > Vigintillion (10^63) 
+// Upper limit > Vigintillion (10^63)
 // ref: https://en.wikipedia.org/wiki/Names_of_large_numbers#Standard_dictionary_numbers
 
 package parsers
@@ -37,8 +37,8 @@ func (n *NumberWord) CanParseIntoHuman(s string) bool {
 
 	match, _ := regexp.MatchString(`^(([0-9]+)|([0-9]{1,3}[., ])+[0-9]{1,3})$`, s)
 	if match && len(s) < 88 {
-			return true
-    }
+		return true
+	}
 	return false
 }
 
@@ -58,28 +58,28 @@ func (n *NumberWord) DoIntoHuman(s string) string {
 		name   string
 		powers int
 	}{
-		1: {"hundred", 2}, // not used
-		2: {"thousand", 3},
-		3: {"million", 6},
-		4: {"billion", 9},
-		5: {"trillion", 12},
-        6: {"quadrillion", 15},
-        7: {"quintillion", 18},
-        8: {"sextillion", 21},
-        9: {"septillion", 24},
-        10: {"octillion", 27},
-        11: {"nonillion", 30},
-        12: {"decillion", 33},
-        13: {"undecillion", 36},
-        14: {"duodecillion", 39},
-        15: {"tredecillion", 42},
-        16: {"quattuordecillion", 45},
-        17: {"quindecillion", 48},
-        18: {"sexdecillion", 51},
-        19: {"septendecillion", 54},
-        20: {"octodecillion", 57},
-        21: {"novemdecillion", 60},
-        22: {"vigintillion", 63},
+		1:  {"hundred", 2}, // not used
+		2:  {"thousand", 3},
+		3:  {"million", 6},
+		4:  {"billion", 9},
+		5:  {"trillion", 12},
+		6:  {"quadrillion", 15},
+		7:  {"quintillion", 18},
+		8:  {"sextillion", 21},
+		9:  {"septillion", 24},
+		10: {"octillion", 27},
+		11: {"nonillion", 30},
+		12: {"decillion", 33},
+		13: {"undecillion", 36},
+		14: {"duodecillion", 39},
+		15: {"tredecillion", 42},
+		16: {"quattuordecillion", 45},
+		17: {"quindecillion", 48},
+		18: {"sexdecillion", 51},
+		19: {"septendecillion", 54},
+		20: {"octodecillion", 57},
+		21: {"novemdecillion", 60},
+		22: {"vigintillion", 63},
 	}
 
 	// Strip delimiters
