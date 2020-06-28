@@ -1,7 +1,8 @@
 // Given a number in string form
 // Return the number in word form of the greatest power (e.g. 300,100,000,000 => 300.1 Billion)
 // Lower limit > Thousands (e.g. xxx,000) # Numbers below this are in hundreds and can be expressed numerically
-// Upper limit > Centillion (10^303) ref: https://en.wikipedia.org/wiki/Names_of_large_numbers#Standard_dictionary_numbers
+// Upper limit > Vigintillion (10^63) 
+// ref: https://en.wikipedia.org/wiki/Names_of_large_numbers#Standard_dictionary_numbers
 
 package parsers
 
