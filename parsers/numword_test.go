@@ -54,6 +54,8 @@ func TestNumberWordCanParseFromHumans(t *testing.T) {
 		{"1 foo", false},
 		// none of this garbage
 		{"100,000 million", false},
+		{"100.000 million", false},
+		{"100 000 million", false},
 		// These names are excluded by design
 		{"1 centillion", false},
 		{"1 googol", false},

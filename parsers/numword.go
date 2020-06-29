@@ -76,9 +76,20 @@ func (n *NumberWord) CanParseIntoHuman(s string) bool {
 }
 
 // CanParseFromHuman ...
+// is it a digit word combo? ( <number>[.tenths] <word> )
+// is the word in the trans table?
 func (n *NumberWord) CanParseFromHuman(s string) bool {
-	// is it a digit word combo? (e.g. 48 billion) /\d+ [a-zA-Z]+)
-	// is the word in the translation map?
+	match, _ := regexp.MatchString(`^[0-9]+([.][0-9])? [a-zA-Z]+$`, s)
+	if match {
+		word := strings.ToLower(strings.Split(s, " ")[1])
+
+		for _, v := range n.trans {
+			if v.name == word {
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
