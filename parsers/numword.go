@@ -17,11 +17,44 @@ import (
 // strings delimited by [,. ] are accepted
 // strings are assumed to have no decimal places
 // converts to word strings of the greatest power
-type NumberWord struct{}
+type NumberWord struct {
+	trans map[int]struct {
+		name   string
+		powers int
+	}
+}
 
 // NewNumberWord constructs a NumberWord struct
 func NewNumberWord() *NumberWord {
-	return &NumberWord{}
+	return &NumberWord{
+		trans: map[int]struct {
+			name   string
+			powers int
+		}{
+			1:  {"hundred", 2}, // not used
+			2:  {"thousand", 3},
+			3:  {"million", 6},
+			4:  {"billion", 9},
+			5:  {"trillion", 12},
+			6:  {"quadrillion", 15},
+			7:  {"quintillion", 18},
+			8:  {"sextillion", 21},
+			9:  {"septillion", 24},
+			10: {"octillion", 27},
+			11: {"nonillion", 30},
+			12: {"decillion", 33},
+			13: {"undecillion", 36},
+			14: {"duodecillion", 39},
+			15: {"tredecillion", 42},
+			16: {"quattuordecillion", 45},
+			17: {"quindecillion", 48},
+			18: {"sexdecillion", 51},
+			19: {"septendecillion", 54},
+			20: {"octodecillion", 57},
+			21: {"novemdecillion", 60},
+			22: {"vigintillion", 63},
+		},
+	}
 }
 
 // CanParseIntoHuman ...
@@ -54,33 +87,6 @@ func (n *NumberWord) CanParseFromHuman(s string) bool {
 // Uses NumberGroup to make an array
 // Rounds second group to nearest hundreds (i.e. 1 decimal place)
 func (n *NumberWord) DoIntoHuman(s string) string {
-	trans := map[int]struct {
-		name   string
-		powers int
-	}{
-		1:  {"hundred", 2}, // not used
-		2:  {"thousand", 3},
-		3:  {"million", 6},
-		4:  {"billion", 9},
-		5:  {"trillion", 12},
-		6:  {"quadrillion", 15},
-		7:  {"quintillion", 18},
-		8:  {"sextillion", 21},
-		9:  {"septillion", 24},
-		10: {"octillion", 27},
-		11: {"nonillion", 30},
-		12: {"decillion", 33},
-		13: {"undecillion", 36},
-		14: {"duodecillion", 39},
-		15: {"tredecillion", 42},
-		16: {"quattuordecillion", 45},
-		17: {"quindecillion", 48},
-		18: {"sexdecillion", 51},
-		19: {"septendecillion", 54},
-		20: {"octodecillion", 57},
-		21: {"novemdecillion", 60},
-		22: {"vigintillion", 63},
-	}
 
 	// Strip delimiters
 	r := regexp.MustCompile("[^0-9]")
@@ -98,7 +104,7 @@ func (n *NumberWord) DoIntoHuman(s string) string {
 	if decimal > 0 {
 		out.WriteString("." + strconv.Itoa(decimal))
 	}
-	out.WriteString(" " + trans[len(numbers)].name)
+	out.WriteString(" " + n.trans[len(numbers)].name)
 
 	return out.String()
 }
