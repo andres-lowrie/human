@@ -40,6 +40,45 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
 	}
 }
 
+func TestNumberWordCanParseFromHumans(t *testing.T) {
+	tests := []struct {
+		in  string
+		out bool
+	}{
+		// Must be <digits> <word>
+		{"1", false},
+		{"million", false},
+		{"one million", false},
+		{"1 million!", false},
+		// <word> must be in the trans table
+		{"1 foo", false},
+		// none of this garbage
+		{"100,000 million", false},
+		// These names are excluded by design
+		{"1 centillion", false},
+		{"1 googol", false},
+		{"1 googolplex", false},
+
+		// Tenths, Ones, Tens, Hundreds
+		{"1 million", true},
+		{"10 million", true},
+		{"100 million", true},
+		{"1.3 million", true},
+		// case insensitive
+		{"1 MiLlIon", true},
+	}
+
+	numword := NewNumberWord()
+	for i, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			got := numword.CanParseFromHuman(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
+			}
+		})
+	}
+}
+
 func TestNumberWordDoIntoHuman(t *testing.T) {
 	tests := []struct {
 		in  string
