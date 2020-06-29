@@ -113,3 +113,29 @@ func TestNumberWordDoIntoHuman(t *testing.T) {
 		})
 	}
 }
+
+func TestNumberWordDoFromHuman(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{"1 million", "1000000"},
+		{"1 MILLION", "1000000"},
+		{"10 billion", "10000000000"},
+		{"100 trillion", "100000000000000"},
+		{"1.3 million", "1300000"},
+		{"10.3 million", "10300000"},
+		{"100.3 million", "100300000"},
+		{"1 vigintillion", "1000000000000000000000000000000000000000000000000000000000000000"},
+	}
+
+	numword := NewNumberWord()
+	for i, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			got := numword.DoFromHuman(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+		})
+	}
+}
