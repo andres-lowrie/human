@@ -7,6 +7,7 @@
 package parsers
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strconv"
@@ -76,9 +77,20 @@ func (n *NumberWord) CanParseIntoHuman(s string) bool {
 }
 
 // CanParseFromHuman ...
+// is it a digit word combo? ( <number>[.tenths] <word> )
+// is the word in the trans table? (case insensitive)
 func (n *NumberWord) CanParseFromHuman(s string) bool {
-	// is it a digit word combo? (e.g. 48 billion) /\d+ [a-zA-Z]+)
-	// is the word in the translation map?
+	match, _ := regexp.MatchString(`^[0-9]+([.][0-9])? [a-zA-Z]+$`, s)
+	if match {
+		_, word := splitHumanNumberWord(s)
+
+		for _, v := range n.trans {
+			if v.name == word {
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -110,10 +122,36 @@ func (n *NumberWord) DoIntoHuman(s string) string {
 }
 
 // DoFromHuman ...
-// Only works with highest power (e.g. 100.3 Billion, not 100,300 Million)
+// Only works with highest power
+// and first digit (e.g. 100.3 Billion, not 100,300 Million)
+// Returns a numeric string e.g. 1 thousand => 1000
 func (n *NumberWord) DoFromHuman(s string) string {
-	// Split numbers from word
-	// Get powers from translation map
-	// Return ( numbers * 10^foo )
-	return "100"
+	num, word := splitHumanNumberWord(s)
+	var power int
+
+	// Get power from translation map
+	for _, v := range n.trans {
+		if word == v.name {
+			power = v.powers
+		}
+	}
+
+	var out strings.Builder
+	if a := strings.Split(num, "."); len(a) > 1 {
+		fmt.Fprintf(&out, "%s%s", a[0], a[1])
+		power--
+	} else {
+		out.WriteString(num)
+	}
+	out.WriteString(strings.Repeat("0", power))
+	return out.String()
+}
+
+// splitHumanNumberWord takes a digit word pair and returns the individual components
+// <digit>[.<tenths>] <word>
+func splitHumanNumberWord(s string) (string, string) {
+	a := strings.Split(s, " ")
+	num, word := a[0], a[1]
+	word = strings.ToLower(word)
+	return num, word
 }
