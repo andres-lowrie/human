@@ -64,16 +64,18 @@ func NewNumberWord() *NumberWord {
 // is it less than the max?
 //  67 places plus delimiters = 88 char
 // everything else is not a number
-func (n *NumberWord) CanParseIntoHuman(s string) bool {
-	if len(s) < 4 {
-		return false
-	}
-
+func (n *NumberWord) CanParseIntoHuman(s string) (bool, error) {
 	match, _ := regexp.MatchString(`^(([0-9]+)|([0-9]{1,3}[., ])+[0-9]{1,3})$`, s)
-	if match && len(s) < 88 {
-		return true
+	if match {
+		if len(s) >= 88 {
+			return false, ErrTooLarge
+		} else if len(s) < 4 {
+			return false, ErrTooSmall
+		} else {
+			return true, nil
+		}
 	}
-	return false
+	return false, ErrNotANumber
 }
 
 // CanParseFromHuman ...
@@ -99,7 +101,6 @@ func (n *NumberWord) CanParseFromHuman(s string) bool {
 // Uses NumberGroup to make an array
 // Rounds second group to nearest hundreds (i.e. 1 decimal place)
 func (n *NumberWord) DoIntoHuman(s string) string {
-
 	// Strip delimiters
 	r := regexp.MustCompile("[^0-9]")
 	s = r.ReplaceAllString(s, "")

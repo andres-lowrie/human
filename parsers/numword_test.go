@@ -8,33 +8,37 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
+		err error
 	}{
 		// Only numbers
-		{"aba", false},
-		{"12af", false},
-		{"123,afb,$$@", false},
+		{"aba", false, ErrNotANumber},
+		{"12af", false, ErrNotANumber},
+		{"123,afb,$$@", false, ErrNotANumber},
 		// Lower/Upper Bounds
-		{"999", false},
-		{"1000", true},
-		{"100,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", true},
-		{"1,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", false},
+		{"999", false, ErrTooSmall},
+		{"1000", true, nil},
+		{"100,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", true, nil},
+		{"1,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", false, ErrTooLarge},
 		// Delimiters
-		{"1,000,000", true},
-		{"1.000.000", true},
-		{"1 000 000", true},
-		{"1a000a000", false},
+		{"1,000,000", true, nil},
+		{"1.000.000", true, nil},
+		{"1 000 000", true, nil},
+		{"1a000a000", false, ErrNotANumber},
 		// Anything else should be parsable
-		{"1000", true},
-		{"100000000000", true},
-		{"1338054622987", true},
+		{"1000", true, nil},
+		{"100000000000", true, nil},
+		{"1338054622987", true, nil},
 	}
 
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numword.CanParseIntoHuman(tt.in)
+			got, err := numword.CanParseIntoHuman(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Error Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}

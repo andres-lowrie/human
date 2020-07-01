@@ -14,14 +14,20 @@ func NewNumberGroup() *NumberGroup {
 	return &NumberGroup{}
 }
 
-// CanParseIntoHuman ...
-func (n *NumberGroup) CanParseIntoHuman(s string) bool {
-	if len(s) < 4 {
-		return false
+// CanParseIntoHuman determines if input is within bounds
+// in that the input:
+// Contains only digits
+// Is >= 1000
+func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
+	match, _ := regexp.MatchString(`^[0-9]$|^[1-9][0-9]+$`, s)
+	if match && len(s) < 4 {
+		return false, ErrTooSmall
+	} else if match {
+		return true, nil
 	}
 
-	match, _ := regexp.MatchString(`[a-z]+`, s)
-	return !match
+	return false, ErrNotANumber
+
 }
 
 // CanParseFromHuman determines if input is within bounds
