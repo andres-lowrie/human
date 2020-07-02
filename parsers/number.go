@@ -1,9 +1,11 @@
 package parsers
 
 import (
-	"regexp"
+	"errors"
 	"strings"
 )
+
+var ErrNotHumanGroup error = errors.New("Not a Delimited Number")
 
 // NumberGroup handles strings made up of contiguous "0-9" characters converts
 // to and from groupings
@@ -19,10 +21,10 @@ func NewNumberGroup() *NumberGroup {
 // Contains only digits
 // Is >= 1000
 func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
-	match, _ := regexp.MatchString(`^[0-9]$|^[1-9][0-9]+$`, s)
-	if match && len(s) < 4 {
-		return false, ErrTooSmall
-	} else if match {
+	if isMachineNumber(s) {
+		if len(s) < 4 {
+			return false, ErrTooSmall
+		}
 		return true, nil
 	}
 
@@ -35,21 +37,17 @@ func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
 // 	Should at least be the number 1 thousand
 // 	Can't have letters in it
 // 	Needs to have a comma in it
-func (n *NumberGroup) CanParseFromHuman(s string) bool {
+func (n *NumberGroup) CanParseFromHuman(s string) (bool, error) {
 
-	if len(s) <= 4 {
-		return false
+	if isMachineNumber(s) && len(s) < 4 {
+		return false, ErrTooSmall
+	} else if isMachineNumber(s) {
+		return false, ErrNotHumanGroup
+	} else if isDelimitedNumber(s) {
+		return true, nil
+	} else {
+		return false, ErrNotANumber
 	}
-
-	if match, _ := regexp.MatchString(`[a-z]+`, s); match {
-		return false
-	}
-
-	if !strings.Contains(s, ",") {
-		return false
-	}
-
-	return true
 }
 
 // DoIntoHuman takes a string made up of contiguous "0-9" characters and

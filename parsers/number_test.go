@@ -40,20 +40,24 @@ func TestNumberGroupCanParseFromHuman(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
+		err error
 	}{
-		{"999", false},
-		{"1000", false},
-		{"1,000", true},
-		{"1,00f", false},
-		{"1,000,000", true},
+		{"999", false, ErrTooSmall},
+		{"1000", false, ErrNotHumanGroup},
+		{"1,000", true, nil},
+		{"1,00f", false, ErrNotANumber},
+		{"1,000,000", true, nil},
 	}
 
 	numbergroup := NewNumberGroup()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numbergroup.CanParseFromHuman(tt.in)
+			got, err := numbergroup.CanParseFromHuman(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}
