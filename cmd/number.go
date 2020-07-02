@@ -12,7 +12,7 @@ func NewNumber() Command {
 }
 
 func (n *Number) GetParsers() []parsers.Parser {
-	return []parsers.Parser{parsers.NewNumberGroup()}
+	return []parsers.Parser{parsers.NewNumberGroup(), parsers.NewNumberWord()}
 }
 
 func (n *Number) Run(direction string, input string, args CliArgs) string {
@@ -20,6 +20,8 @@ func (n *Number) Run(direction string, input string, args CliArgs) string {
 	var p parsers.Parser
 	if _, ok := args.Flags["g"]; ok {
 		p = parsers.NewNumberGroup()
+	} else if _, ok := args.Flags["w"]; ok {
+		p = parsers.NewNumberWord()
 	} else {
 		p = parsers.NewEmpty()
 	}
