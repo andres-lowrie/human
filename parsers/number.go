@@ -21,15 +21,19 @@ func NewNumberGroup() *NumberGroup {
 // Contains only digits
 // Is >= 1000
 func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
-	if isMachineNumber(s) {
-		if len(s) < 4 {
-			return false, ErrTooSmall
-		}
+	if isMachineNumber(s) && len(s) >= 4 {
 		return true, nil
 	}
 
-	return false, ErrNotANumber
+	// Error cases
+	var err error
 
+	if isMachineNumber(s) && len(s) < 4 {
+		err = ErrTooSmall
+	} else {
+		err = ErrNotANumber
+	}
+	return false, err
 }
 
 // CanParseFromHuman determines if input is within bounds
@@ -38,22 +42,26 @@ func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
 // 	Can't have letters in it
 // 	Needs to have a comma in it
 func (n *NumberGroup) CanParseFromHuman(s string) (bool, error) {
+	if isDelimitedNumber(s) && len(s) >= 4 {
+		return true, nil
+	}
+
+	// Error cases
+	var err error
 
 	if isMachineNumber(s) && len(s) < 4 {
-		return false, ErrTooSmall
+		err = ErrTooSmall
 	} else if isMachineNumber(s) {
-		return false, ErrNotHumanGroup
-	} else if isDelimitedNumber(s) {
-		return true, nil
+		err = ErrNotHumanGroup
 	} else {
-		return false, ErrNotANumber
+		err = ErrNotANumber
 	}
+	return false, err
 }
 
 // DoIntoHuman takes a string made up of contiguous "0-9" characters and
 // returns number groupings
 func (n *NumberGroup) DoIntoHuman(s string) string {
-
 	// Figure out where to place commas
 	var buf strings.Builder
 	bufLen := len(s) - 1

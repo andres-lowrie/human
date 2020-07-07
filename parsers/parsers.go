@@ -50,10 +50,7 @@ func (e *Empty) DoFromHuman(string) string {
 // The first digit must be 1-9 when >= 10
 func isMachineNumber(s string) bool {
 	match, _ := regexp.MatchString(`^[0-9]$|^[1-9][0-9]+$`, s)
-	if match {
-		return true
-	}
-	return false
+	return match
 }
 
 // IsDelimitednumber validates that a number:
@@ -61,6 +58,7 @@ func isMachineNumber(s string) bool {
 // The first digit must be 1-9 when >= 10
 // The first group can be 1-3 digits
 // Subsequent groups must be 3 digits
+// A number less than 1000 is considered a valid delimited number
 func isDelimitedNumber(s string) bool {
 	// 0-999 are machine numbers
 	if len(s) < 4 {
@@ -72,8 +70,5 @@ func isDelimitedNumber(s string) bool {
 	}
 
 	match, _ := regexp.MatchString(`^[1-9][0-9]{0,2}([.,_ ][0-9]{3})+$`, s)
-	if match {
-		return true
-	}
-	return false
+	return match
 }
