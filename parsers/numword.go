@@ -7,12 +7,16 @@
 package parsers
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"regexp"
 	"strconv"
 	"strings"
 )
+
+// Method specific errors
+var ErrNotADigitWordCombo error = errors.New("Not a <digit> <word> combo")
 
 // NumberWord handles strings made of contiguous "0-9" characters
 // strings delimited by [,. ] are accepted
@@ -65,35 +69,41 @@ func NewNumberWord() *NumberWord {
 //  67 places plus delimiters = 88 char
 // everything else is not a number
 func (n *NumberWord) CanParseIntoHuman(s string) (bool, error) {
-	match, _ := regexp.MatchString(`^(([0-9]+)|([0-9]{1,3}[., ])+[0-9]{1,3})$`, s)
-	if match {
-		if len(s) >= 88 {
-			return false, ErrTooLarge
-		} else if len(s) < 4 {
-			return false, ErrTooSmall
-		} else {
-			return true, nil
-		}
+	if (len(s) >= 4) && (len(s) <= 88) &&
+		(isMachineNumber(s) || isDelimitedNumber(s)) {
+		return true, nil
 	}
-	return false, ErrNotANumber
+
+	// Error Cases
+	var err error
+	if !(isDelimitedNumber(s) || isMachineNumber(s)) {
+		err = ErrNotANumber
+	} else if len(s) >= 88 {
+		err = ErrTooLarge
+	} else if len(s) < 4 {
+		err = ErrTooSmall
+	}
+
+	return false, err
 }
 
 // CanParseFromHuman ...
 // is it a digit word combo? ( <number>[.tenths] <word> )
 // is the word in the trans table? (case insensitive)
-func (n *NumberWord) CanParseFromHuman(s string) bool {
+func (n *NumberWord) CanParseFromHuman(s string) (bool, error) {
+	//
 	match, _ := regexp.MatchString(`^[0-9]+([.][0-9])? [a-zA-Z]+$`, s)
 	if match {
 		_, word := splitHumanNumberWord(s)
 
 		for _, v := range n.trans {
 			if v.name == word {
-				return true
+				return true, nil
 			}
 		}
 	}
 
-	return false
+	return false, ErrNotADigitWordCombo
 }
 
 // DoIntoHuman ...
@@ -150,9 +160,13 @@ func (n *NumberWord) DoFromHuman(s string) string {
 
 // splitHumanNumberWord takes a digit word pair and returns the individual components
 // <digit>[.<tenths>] <word>
+// Output is lower cased
 func splitHumanNumberWord(s string) (string, string) {
 	a := strings.Split(s, " ")
+	// is len(a) == 2?
 	num, word := a[0], a[1]
+	// isMachineNumber(num)?
+	// is word only letters?
 	word = strings.ToLower(word)
 	return num, word
 }

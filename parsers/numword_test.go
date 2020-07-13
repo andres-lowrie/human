@@ -48,38 +48,42 @@ func TestNumberWordCanParseFromHumans(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
+		err error
 	}{
 		// Must be <digits> <word>
-		{"1", false},
-		{"million", false},
-		{"one million", false},
-		{"1 million!", false},
+		{"1", false, ErrNotADigitWordCombo},
+		{"million", false, ErrNotADigitWordCombo},
+		{"one million", false, ErrNotADigitWordCombo},
+		{"1 million!", false, ErrNotADigitWordCombo},
 		// <word> must be in the trans table
-		{"1 foo", false},
+		{"1 foo", false, ErrNotADigitWordCombo},
 		// none of this garbage
-		{"100,000 million", false},
-		{"100.000 million", false},
-		{"100 000 million", false},
+		{"100,000 million", false, ErrNotADigitWordCombo},
+		{"100.000 million", false, ErrNotADigitWordCombo},
+		{"100 000 million", false, ErrNotADigitWordCombo},
 		// These names are excluded by design
-		{"1 centillion", false},
-		{"1 googol", false},
-		{"1 googolplex", false},
+		{"1 centillion", false, ErrNotADigitWordCombo},
+		{"1 googol", false, ErrNotADigitWordCombo},
+		{"1 googolplex", false, ErrNotADigitWordCombo},
 
 		// Tenths, Ones, Tens, Hundreds
-		{"1 million", true},
-		{"10 million", true},
-		{"100 million", true},
-		{"1.3 million", true},
+		{"1 million", true, nil},
+		{"10 million", true, nil},
+		{"100 million", true, nil},
+		{"1.3 million", true, nil},
 		// case insensitive
-		{"1 MiLlIon", true},
+		{"1 MiLlIon", true, nil},
 	}
 
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numword.CanParseFromHuman(tt.in)
+			got, err := numword.CanParseFromHuman(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}
