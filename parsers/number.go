@@ -1,9 +1,11 @@
 package parsers
 
 import (
-	"regexp"
+	"errors"
 	"strings"
 )
+
+var ErrNotHumanGroup error = errors.New("Not a Delimited Number")
 
 // NumberGroup handles strings made up of contiguous "0-9" characters converts
 // to and from groupings
@@ -14,14 +16,24 @@ func NewNumberGroup() *NumberGroup {
 	return &NumberGroup{}
 }
 
-// CanParseIntoHuman ...
-func (n *NumberGroup) CanParseIntoHuman(s string) bool {
-	if len(s) < 4 {
-		return false
+// CanParseIntoHuman determines if input is within bounds
+// in that the input:
+// Contains only digits
+// Is >= 1000
+func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
+	if isMachineNumber(s) && len(s) >= 4 {
+		return true, nil
 	}
 
-	match, _ := regexp.MatchString(`[a-z]+`, s)
-	return !match
+	// Error cases
+	var err error
+
+	if isMachineNumber(s) && len(s) < 4 {
+		err = ErrTooSmall
+	} else {
+		err = ErrNotANumber
+	}
+	return false, err
 }
 
 // CanParseFromHuman determines if input is within bounds
@@ -29,27 +41,27 @@ func (n *NumberGroup) CanParseIntoHuman(s string) bool {
 // 	Should at least be the number 1 thousand
 // 	Can't have letters in it
 // 	Needs to have a comma in it
-func (n *NumberGroup) CanParseFromHuman(s string) bool {
-
-	if len(s) <= 4 {
-		return false
+func (n *NumberGroup) CanParseFromHuman(s string) (bool, error) {
+	if isDelimitedNumber(s) && len(s) >= 4 {
+		return true, nil
 	}
 
-	if match, _ := regexp.MatchString(`[a-z]+`, s); match {
-		return false
-	}
+	// Error cases
+	var err error
 
-	if !strings.Contains(s, ",") {
-		return false
+	if isMachineNumber(s) && len(s) < 4 {
+		err = ErrTooSmall
+	} else if isMachineNumber(s) {
+		err = ErrNotHumanGroup
+	} else {
+		err = ErrNotANumber
 	}
-
-	return true
+	return false, err
 }
 
 // DoIntoHuman takes a string made up of contiguous "0-9" characters and
 // returns number groupings
 func (n *NumberGroup) DoIntoHuman(s string) string {
-
 	// Figure out where to place commas
 	var buf strings.Builder
 	bufLen := len(s) - 1
