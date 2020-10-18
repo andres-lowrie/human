@@ -7,8 +7,8 @@ import (
 
 // Parser is the contract that the main command line application will use
 type Parser interface {
-	CanParseIntoHuman(string) (bool error)
-	CanParseFromHuman(string) (bool error)
+	CanParseIntoHuman(string) (bool, error)
+	CanParseFromHuman(string) (bool, error)
 	DoIntoHuman(string) string
 	DoFromHuman(string) string
 }
@@ -29,11 +29,11 @@ func NewEmpty() *Empty {
 
 type Empty struct{}
 
-func (e *Empty) CanParseIntoHuman(string) (t bool, err error) {
+func (e *Empty) CanParseIntoHuman(string) (bool, error) {
 	return true, nil
 }
 
-func (e *Empty) CanParseFromHuman(string) (t bool, err error) {
+func (e *Empty) CanParseFromHuman(string) (bool, error) {
 	return true, nil
 }
 
@@ -54,7 +54,7 @@ func isMachineNumber(s string) bool {
 }
 
 // IsDelimitednumber validates that a number:
-// Contains only digits and` delimiters [., _]
+// Contains only digits and delimiters [., _]
 // The first digit must be 1-9 when >= 10
 // The first group can be 1-3 digits
 // Subsequent groups must be 3 digits

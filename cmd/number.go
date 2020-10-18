@@ -26,11 +26,11 @@ func (n *Number) Run(direction string, input string, args CliArgs) string {
 		p = parsers.NewEmpty()
 	}
 
-	if direction == "from" && p.CanParseFromHuman(input) {
+	if ok, _ := p.CanParseFromHuman(input); direction == "from" && ok {
 		return p.DoFromHuman(input)
 	}
 
-	if direction == "into" && p.CanParseIntoHuman(input) {
+	if ok, _ := p.CanParseIntoHuman(input); direction == "into" && ok {
 		return p.DoIntoHuman(input)
 	}
 
