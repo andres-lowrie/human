@@ -7,10 +7,10 @@ import (
 
 // Parser is the contract that the main command line application will use
 type Parser interface {
-	CanParseIntoHuman(string) (bool, error)
-	CanParseFromHuman(string) (bool, error)
-	DoIntoHuman(string) string
-	DoFromHuman(string) string
+	CanParseIntoMachine(string) (bool, error)
+	CanParseFromMachine(string) (bool, error)
+	DoIntoMachine(string) string
+	DoFromMachine(string) string
 }
 
 // General purpose errors
