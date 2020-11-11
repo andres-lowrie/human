@@ -62,13 +62,13 @@ func NewNumberWord() *NumberWord {
 	}
 }
 
-// CanParseIntoHuman ...
+// CanParseFromMachine ...
 // is it 4 or more characters? (e.g. is it => 1000)
 // is it a (delimited[,. ]) number?
 // is it less than the max?
 //  67 places plus delimiters = 88 char
 // everything else is not a number
-func (n *NumberWord) CanParseIntoHuman(s string) (bool, error) {
+func (n *NumberWord) CanParseFromMachine(s string) (bool, error) {
 	if (len(s) >= 4) && (len(s) <= 88) &&
 		(isMachineNumber(s) || isDelimitedNumber(s)) {
 		return true, nil
@@ -87,10 +87,10 @@ func (n *NumberWord) CanParseIntoHuman(s string) (bool, error) {
 	return false, err
 }
 
-// CanParseFromHuman ...
+// CanParseIntoMachine ...
 // is it a digit word combo? ( <number>[.tenths] <word> )
 // is the word in the trans table? (case insensitive)
-func (n *NumberWord) CanParseFromHuman(s string) (bool, error) {
+func (n *NumberWord) CanParseIntoMachine(s string) (bool, error) {
 	//
 	match, _ := regexp.MatchString(`^[0-9]+([.][0-9])? [a-zA-Z]+$`, s)
 	if match {
@@ -106,11 +106,11 @@ func (n *NumberWord) CanParseFromHuman(s string) (bool, error) {
 	return false, ErrNotADigitWordCombo
 }
 
-// DoIntoHuman ...
+// DoFromMachine ...
 // Can accept delimited numbers
 // Uses NumberGroup to make an array
 // Rounds second group to nearest hundreds (i.e. 1 decimal place)
-func (n *NumberWord) DoIntoHuman(s string) string {
+func (n *NumberWord) DoFromMachine(s string) string {
 	// Strip delimiters
 	r := regexp.MustCompile("[^0-9]")
 	s = r.ReplaceAllString(s, "")
@@ -132,11 +132,11 @@ func (n *NumberWord) DoIntoHuman(s string) string {
 	return out.String()
 }
 
-// DoFromHuman ...
+// DoIntoMachine ...
 // Only works with highest power
 // and first digit (e.g. 100.3 Billion, not 100,300 Million)
 // Returns a numeric string e.g. 1 thousand => 1000
-func (n *NumberWord) DoFromHuman(s string) string {
+func (n *NumberWord) DoIntoMachine(s string) string {
 	num, word := splitHumanNumberWord(s)
 	var power int
 
