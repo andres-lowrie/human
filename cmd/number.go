@@ -26,12 +26,12 @@ func (n *Number) Run(direction string, input string, args CliArgs) string {
 		p = parsers.NewEmpty()
 	}
 
-	if ok, _ := p.CanParseFromHuman(input); direction == "from" && ok {
-		return p.DoFromHuman(input)
+	if ok, _ := p.CanParseFromMachine(input); direction == "from" && ok {
+		return p.DoFromMachine(input)
 	}
 
-	if ok, _ := p.CanParseIntoHuman(input); direction == "into" && ok {
-		return p.DoIntoHuman(input)
+	if ok, _ := p.CanParseIntoMachine(input); direction == "into" && ok {
+		return p.DoIntoMachine(input)
 	}
 
 	return ""
