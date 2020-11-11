@@ -63,8 +63,8 @@ func TestCanParseIntoMachine(t *testing.T) {
 		in    string
 		out   bool
 	}{
-		// Note that the number portion of the iput is picked at random in the test
-		// table loop. When reading these test cases, you should them read as:
+		// Note that the number portion of the input is picked at random in the test
+		// table loop. When reading these test cases, you should read them as:
 		//
 		// 	"$some-gen-number + <in>" -> <out>
 		//
