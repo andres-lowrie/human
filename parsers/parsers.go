@@ -29,19 +29,19 @@ func NewEmpty() *Empty {
 
 type Empty struct{}
 
-func (e *Empty) CanParseIntoHuman(string) (bool, error) {
+func (e *Empty) CanParseIntoMachine(string) (bool, error) {
 	return true, nil
 }
 
-func (e *Empty) CanParseFromHuman(string) (bool, error) {
+func (e *Empty) CanParseFromMachine(string) (bool, error) {
 	return true, nil
 }
 
-func (e *Empty) DoIntoHuman(string) string {
+func (e *Empty) DoIntoMachine(string) string {
 	return "Not Yet Implemented"
 }
 
-func (e *Empty) DoFromHuman(string) string {
+func (e *Empty) DoFromMachine(string) string {
 	return "Not Yet Implemented"
 }
 
