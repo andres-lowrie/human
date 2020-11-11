@@ -116,7 +116,7 @@ func (n *NumberWord) DoIntoHuman(s string) string {
 	s = r.ReplaceAllString(s, "")
 
 	numgroup := NewNumberGroup()
-	numbers := strings.Split(numgroup.DoIntoHuman(s), ",")
+	numbers := strings.Split(numgroup.DoFromMachine(s), ",")
 
 	var out strings.Builder
 	out.WriteString(numbers[0])

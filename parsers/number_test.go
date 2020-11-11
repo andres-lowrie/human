@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestNumberGroupCanParseIntoHuman(t *testing.T) {
+func TestNumberGroupCanParseFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
@@ -25,7 +25,7 @@ func TestNumberGroupCanParseIntoHuman(t *testing.T) {
 	numbergroup := NewNumberGroup()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got, err := numbergroup.CanParseIntoHuman(tt.in)
+			got, err := numbergroup.CanParseFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
 			}
@@ -36,7 +36,7 @@ func TestNumberGroupCanParseIntoHuman(t *testing.T) {
 	}
 }
 
-func TestNumberGroupCanParseFromHuman(t *testing.T) {
+func TestNumberGroupCanParseIntoMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
@@ -52,7 +52,7 @@ func TestNumberGroupCanParseFromHuman(t *testing.T) {
 	numbergroup := NewNumberGroup()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got, err := numbergroup.CanParseFromHuman(tt.in)
+			got, err := numbergroup.CanParseIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
 			}
@@ -63,7 +63,7 @@ func TestNumberGroupCanParseFromHuman(t *testing.T) {
 	}
 }
 
-func TestNumberGroupDoIntoHuman(t *testing.T) {
+func TestNumberGroupDoFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
@@ -84,7 +84,7 @@ func TestNumberGroupDoIntoHuman(t *testing.T) {
 	numbergroup := NewNumberGroup()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numbergroup.DoIntoHuman(tt.in)
+			got := numbergroup.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
 			}
@@ -92,7 +92,7 @@ func TestNumberGroupDoIntoHuman(t *testing.T) {
 	}
 }
 
-func TestNumberGroupDoFromHuman(t *testing.T) {
+func TestNumberGroupDoIntoMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
@@ -111,7 +111,7 @@ func TestNumberGroupDoFromHuman(t *testing.T) {
 	numbergroup := NewNumberGroup()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numbergroup.DoFromHuman(tt.in)
+			got := numbergroup.DoIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
 			}
