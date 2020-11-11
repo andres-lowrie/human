@@ -160,8 +160,8 @@ func NewSize(input interface{}) *Size {
 	}
 }
 
-// CanParseIntoHuman determines if string is valid for this parser
-func (sz *Size) CanParseIntoHuman(s string) bool {
+// CanParseFromMachine determines if string is valid for this parser
+func (sz *Size) CanParseFromMachine(s string) bool {
 	if len(s) < 4 {
 		return false
 	}
@@ -170,16 +170,16 @@ func (sz *Size) CanParseIntoHuman(s string) bool {
 	return !match
 }
 
-// CanParseFromHuman determines if the user input can be handled by this parser.
+// CanParseIntoMachine determines if the user input can be handled by this parser.
 // The gist is that it should allow any number followed by a known suffix,
 // with no spaces in between the number of the suffix, ie:
 // 	1234654<suffix>
-func (sz *Size) CanParseFromHuman(s string) bool {
+func (sz *Size) CanParseIntoMachine(s string) bool {
 	// Get the suffix passed
 	r := regexp.MustCompile(`(?i)[a-z]+$`)
 	inputSuffix := r.FindString(s)
 
-	// Does this suffix correspond the the units we're using?
+	// Does this suffix correspond to the units we're using?
 	allowed := false
 	for _, v := range suffixes[sz.units] {
 		if v == strings.ToLower(inputSuffix) {
@@ -190,7 +190,7 @@ func (sz *Size) CanParseFromHuman(s string) bool {
 	return allowed
 }
 
-func (sz *Size) DoIntoHuman(s string) string {
+func (sz *Size) DoFromMachine(s string) string {
 
 	opts := sz.trans[len(s)]
 	n, _ := strconv.ParseFloat(s, 64)
@@ -201,7 +201,7 @@ func (sz *Size) DoIntoHuman(s string) string {
 	return fmt.Sprintf("%.1f%s", res, opts.suffix)
 }
 
-func (sz *Size) DoFromHuman(s string) string {
+func (sz *Size) DoIntoMachine(s string) string {
 	// Pull out the number and the suffix from the string
 	r := regexp.MustCompile(`([0-9]+)([a-zA-Z]+)`)
 	match := r.FindStringSubmatch(s)

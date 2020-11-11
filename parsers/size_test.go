@@ -31,7 +31,7 @@ func TestDefaultUnitIsSet(t *testing.T) {
 	}
 }
 
-func TestSizeCanParseIntoHuman(t *testing.T) {
+func TestSizeCanParseFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
@@ -49,7 +49,7 @@ func TestSizeCanParseIntoHuman(t *testing.T) {
 	sizeP := NewSize(nil)
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := sizeP.CanParseIntoHuman(tt.in)
+			got := sizeP.CanParseFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
 			}
@@ -57,22 +57,21 @@ func TestSizeCanParseIntoHuman(t *testing.T) {
 	}
 }
 
-func TestCanParseFromHuman(t *testing.T) {
+func TestCanParseIntoMachine(t *testing.T) {
 	tests := []struct {
 		units string
 		in    string
 		out   bool
 	}{
 		// Note that the number portion of the iput is picked at random in the test
-		// table loop. When reading these test cases, you shoul read as:
+		// table loop. When reading these test cases, you should them read as:
 		//
 		// 	"$some-gen-number + <in>" -> <out>
 		//
-		// In order to save some redundancy, every upper/lower case combination
-		// herein is generated tested as well. So when we see a letter or pairing
+		// // @TODO the following isn't happening, it should be added
+		// In order to save some redundancy, every upper/lower letter case combination
+		// is generated and tested as well. So when we see a letter or pairing
 		// of letters like say `KB`, that case will expanded to `kb, KB, kB, Kb`.
-		// Basically the unit portion of the input is case insensitive all the way
-		// around
 		//
 		// SI Units
 		// Symbols
@@ -122,7 +121,7 @@ func TestCanParseFromHuman(t *testing.T) {
 		{"iec", "exbi", true},
 		{"iec", "zebi", true},
 		{"iec", "yobi", true},
-		// Nonse
+		// Nonsense
 		{"iec", "xafadfa", false},
 		{"si", "234Af", false},
 	}
@@ -132,7 +131,7 @@ func TestCanParseFromHuman(t *testing.T) {
 		t.Run(tt.in, func(t *testing.T) {
 			num := rand.Intn(10_000_000)
 			input := fmt.Sprintf("%d%s", num, tt.in)
-			got := sizeP.CanParseFromHuman(input)
+			got := sizeP.CanParseIntoMachine(input)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
 			}
@@ -140,7 +139,7 @@ func TestCanParseFromHuman(t *testing.T) {
 	}
 }
 
-func TestSizeDoIntoHumanSI(t *testing.T) {
+func TestSizeDoFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
@@ -179,7 +178,7 @@ func TestSizeDoIntoHumanSI(t *testing.T) {
 	sizeP := NewSize("si")
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := sizeP.DoIntoHuman(tt.in)
+			got := sizeP.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
 			}
@@ -187,7 +186,7 @@ func TestSizeDoIntoHumanSI(t *testing.T) {
 	}
 }
 
-func TestSizeDoIntoHumanIEC(t *testing.T) {
+func TestSizeDoFromMachineIEC(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
@@ -227,7 +226,7 @@ func TestSizeDoIntoHumanIEC(t *testing.T) {
 	sizeP := NewSize("iec")
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := sizeP.DoIntoHuman(tt.in)
+			got := sizeP.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
 			}
@@ -237,10 +236,9 @@ func TestSizeDoIntoHumanIEC(t *testing.T) {
 
 // This series is a bit different given that `NewSize` determines the input
 // type or standard to use based on the suffix that is passed to it.
-// These aren't checking that logic however (other tests do that @TODO add
-// tests to cmd.Size) hence the passing of the `inputType` parameter in the
-// test cases
-func TestSizeDoFromHuman(t *testing.T) {
+// These aren't checking that logic however (other tests do that)
+// hence the passing of the `inputType` parameter in the test cases
+func TestSizeDoIntoMachine(t *testing.T) {
 	tests := []struct {
 		inputType interface{}
 		in        string
@@ -266,7 +264,7 @@ func TestSizeDoFromHuman(t *testing.T) {
 	for i, tt := range tests {
 		sizeP := NewSize(tt.inputType)
 		t.Run(tt.in, func(t *testing.T) {
-			got := sizeP.DoFromHuman(tt.in)
+			got := sizeP.DoIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
 			}
