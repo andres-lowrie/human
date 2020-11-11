@@ -1,9 +1,7 @@
 human
 ======
 
-Machine -> Human
-
-Human -> Machine
+Translate stuff from `Machine -> Human` and back again `Human -> Machine`
 
 ## TL;DR
 
@@ -31,4 +29,4 @@ human "run five minutes after midnight every day"
 > 5 0 * * *
 ```
 
-For full breakdown see [command](commands.md)
+For full breakdown see [commands](cmds/README.md)
