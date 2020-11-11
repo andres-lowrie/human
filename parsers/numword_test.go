@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestNumberWordCanParseIntoHuman(t *testing.T) {
+func TestNumberWordCanParseFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
@@ -33,7 +33,7 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got, err := numword.CanParseIntoHuman(tt.in)
+			got, err := numword.CanParseFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
 			}
@@ -44,7 +44,7 @@ func TestNumberWordCanParseIntoHuman(t *testing.T) {
 	}
 }
 
-func TestNumberWordCanParseFromHumans(t *testing.T) {
+func TestNumberWordCanParseIntoMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out bool
@@ -78,7 +78,7 @@ func TestNumberWordCanParseFromHumans(t *testing.T) {
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got, err := numword.CanParseFromHuman(tt.in)
+			got, err := numword.CanParseIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
 			}
@@ -89,7 +89,7 @@ func TestNumberWordCanParseFromHumans(t *testing.T) {
 	}
 }
 
-func TestNumberWordDoIntoHuman(t *testing.T) {
+func TestNumberWordDoFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
@@ -114,7 +114,7 @@ func TestNumberWordDoIntoHuman(t *testing.T) {
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numword.DoIntoHuman(tt.in)
+			got := numword.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
 			}
@@ -122,7 +122,7 @@ func TestNumberWordDoIntoHuman(t *testing.T) {
 	}
 }
 
-func TestNumberWordDoFromHuman(t *testing.T) {
+func TestNumberWordDoIntoMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
@@ -140,7 +140,7 @@ func TestNumberWordDoFromHuman(t *testing.T) {
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numword.DoFromHuman(tt.in)
+			got := numword.DoIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
 			}

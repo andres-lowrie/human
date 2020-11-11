@@ -22,12 +22,12 @@ func main() {
 	handlers := map[string]cmd.Command{"number": cmd.NewNumber()}
 
 	// Figure out direction and which format
-	// we'll default to the `--into` direction since it might be the most common
-	// usecase i.e. we want to go "into" human format
+	// we'll default to the `--from` direction since it might be the most common
+	// usecase i.e. we want to go "from" machine into human format
 	input := args.Positionals[0]
-	direction := "into"
+	direction := "from"
 	format := ""
-	for _, d := range []string{"from", "into"} {
+	for _, d := range []string{"into", "from"} {
 		if val, ok := args.Options[d]; ok && val != "" {
 			fmt.Println("val", val)
 
@@ -39,9 +39,9 @@ func main() {
 	// The logic here is that if no explicit `into` or `from` option was given
 	// then the first positional argument (read left from right) is the format
 	// and anything after that is the actual input, however if only 1 positional
-	// argument was given then that must be the input in which case we should all
-	// the possible translations, this is why we're checking format for emptiness
-	// twice
+	// argument was given then that must be the input in which case we should run
+	// all the possible translations, this is why we're checking format for
+	// emptiness twice
 	if format == "" {
 		if len(args.Positionals) > 1 {
 			format = args.Positionals[0]

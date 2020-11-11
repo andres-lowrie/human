@@ -16,11 +16,11 @@ func NewNumberGroup() *NumberGroup {
 	return &NumberGroup{}
 }
 
-// CanParseIntoHuman determines if input is within bounds
+// CanParseFromMachine determines if input is within bounds
 // in that the input:
-// Contains only digits
-// Is >= 1000
-func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
+// 	Contains only digits
+// 	Is >= 1000
+func (n *NumberGroup) CanParseFromMachine(s string) (bool, error) {
 	if isMachineNumber(s) && len(s) >= 4 {
 		return true, nil
 	}
@@ -36,12 +36,12 @@ func (n *NumberGroup) CanParseIntoHuman(s string) (bool, error) {
 	return false, err
 }
 
-// CanParseFromHuman determines if input is within bounds
+// CanParseIntoMachine determines if input is within bounds
 // in that the input:
 // 	Should at least be the number 1 thousand
 // 	Can't have letters in it
 // 	Needs to have a comma in it
-func (n *NumberGroup) CanParseFromHuman(s string) (bool, error) {
+func (n *NumberGroup) CanParseIntoMachine(s string) (bool, error) {
 	if isDelimitedNumber(s) && len(s) >= 4 {
 		return true, nil
 	}
@@ -59,9 +59,9 @@ func (n *NumberGroup) CanParseFromHuman(s string) (bool, error) {
 	return false, err
 }
 
-// DoIntoHuman takes a string made up of contiguous "0-9" characters and
+// DoFromMachine takes a string made up of contiguous "0-9" characters and
 // returns number groupings
-func (n *NumberGroup) DoIntoHuman(s string) string {
+func (n *NumberGroup) DoFromMachine(s string) string {
 	// Figure out where to place commas
 	var buf strings.Builder
 	bufLen := len(s) - 1
@@ -85,7 +85,7 @@ func (n *NumberGroup) DoIntoHuman(s string) string {
 	return out.String()
 }
 
-// DoFromHuman ...
-func (n *NumberGroup) DoFromHuman(s string) string {
+// DoIntoMachine ...
+func (n *NumberGroup) DoIntoMachine(s string) string {
 	return strings.Replace(s, ",", "", -1)
 }

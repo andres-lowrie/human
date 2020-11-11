@@ -7,10 +7,10 @@ import (
 
 // Parser is the contract that the main command line application will use
 type Parser interface {
-	CanParseIntoHuman(string) (bool, error)
-	CanParseFromHuman(string) (bool, error)
-	DoIntoHuman(string) string
-	DoFromHuman(string) string
+	CanParseIntoMachine(string) (bool, error)
+	CanParseFromMachine(string) (bool, error)
+	DoIntoMachine(string) string
+	DoFromMachine(string) string
 }
 
 // General purpose errors
@@ -29,19 +29,19 @@ func NewEmpty() *Empty {
 
 type Empty struct{}
 
-func (e *Empty) CanParseIntoHuman(string) (bool, error) {
+func (e *Empty) CanParseIntoMachine(string) (bool, error) {
 	return true, nil
 }
 
-func (e *Empty) CanParseFromHuman(string) (bool, error) {
+func (e *Empty) CanParseFromMachine(string) (bool, error) {
 	return true, nil
 }
 
-func (e *Empty) DoIntoHuman(string) string {
+func (e *Empty) DoIntoMachine(string) string {
 	return "Not Yet Implemented"
 }
 
-func (e *Empty) DoFromHuman(string) string {
+func (e *Empty) DoFromMachine(string) string {
 	return "Not Yet Implemented"
 }
 

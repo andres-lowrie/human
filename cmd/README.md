@@ -1,4 +1,4 @@
-# cmd
+# Commands
 
 ## Calling Pattern
 
