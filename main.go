@@ -24,6 +24,11 @@ func main() {
 	// Figure out direction and which format
 	// we'll default to the `--from` direction since it might be the most common
 	// usecase i.e. we want to go "from" machine into human format
+	if len(args.Positionals) < 1 {
+		fmt.Println("@TODO read arguments from stdin")
+		return
+	}
+
 	input := args.Positionals[0]
 	direction := "from"
 	format := ""
