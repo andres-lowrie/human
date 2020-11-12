@@ -9,9 +9,6 @@ import (
 
 func main() {
 	// Figure out what was passed into the program
-	// @TODO add validation process to args, eg make sure format is something we
-	// know, multiple directions aren't passed etc. this way we can reduce the
-	// amount of checks later in the code and keep all that logic here
 	args := cmd.ParseCliArgs(os.Args[1:])
 
 	// The idea here is that human will print out all parseable values for each
@@ -58,15 +55,25 @@ func main() {
 	fmt.Println("direction", direction)
 
 	var output string
-	if format != "" {
-		output = handlers[format].Run(direction, input, args)
-	} else {
+	if format == "" {
 		for _, c := range handlers {
 			output = c.Run(direction, input, args)
+			if output != "" {
+				fmt.Println("Output", output)
+			}
 		}
+		return
 	}
 
+	c, ok := handlers[format]
+	if !ok {
+		fmt.Println("unknown format, nothing to do")
+		return
+	}
+
+	output = c.Run(direction, input, args)
 	if output != "" {
 		fmt.Println("Output", output)
 	}
+
 }
