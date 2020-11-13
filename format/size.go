@@ -1,12 +1,13 @@
-package cmd
+package format
 
 import (
+	"github.com/andres-lowrie/human/cmd"
 	"github.com/andres-lowrie/human/parsers"
 )
 
 type Size struct{}
 
-func NewSize() Command {
+func NewSize() Format {
 	return &Size{}
 }
 
@@ -17,7 +18,7 @@ func (s *Size) GetParsers() []parsers.Parser {
 	return []parsers.Parser{parsers.NewSize("iec"), parsers.NewSize("si")}
 }
 
-func (s *Size) Run(direction, input string, args CliArgs) string {
+func (s *Size) Run(direction, input string, args cmd.CliArgs) string {
 	// We know from the implementation that `iec` is the default so we'll only
 	// check for others and default to `iec` if we find nothing
 	var p parsers.Parser

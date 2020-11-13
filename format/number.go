@@ -1,13 +1,14 @@
-package cmd
+package format
 
 import (
+	"github.com/andres-lowrie/human/cmd"
 	"github.com/andres-lowrie/human/parsers"
 )
 
 type Number struct {
 }
 
-func NewNumber() Command {
+func NewNumber() Format {
 	return &Number{}
 }
 
@@ -15,7 +16,7 @@ func (n *Number) GetParsers() []parsers.Parser {
 	return []parsers.Parser{parsers.NewNumberGroup(), parsers.NewNumberWord()}
 }
 
-func (n *Number) Run(direction string, input string, args CliArgs) string {
+func (n *Number) Run(direction string, input string, args cmd.CliArgs) string {
 	// Figure out which of the parsers we're using
 	var p parsers.Parser
 	if _, ok := args.Flags["g"]; ok {
