@@ -1,12 +1,15 @@
 package parsers
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"regexp"
 	"strconv"
 	"strings"
 )
+
+var ErrUnknownSuffix error = errors.New("Unknown unit suffix")
 
 // Suffixes describes which symbols and names are allowed for a given unit
 // Note that all of these are case insensitive when it comes time to do the
@@ -161,20 +164,23 @@ func NewSize(input interface{}) *Size {
 }
 
 // CanParseFromMachine determines if string is valid for this parser
-func (sz *Size) CanParseFromMachine(s string) bool {
-	if len(s) < 4 {
-		return false
+func (sz *Size) CanParseFromMachine(s string) (bool, error) {
+	if match, _ := regexp.MatchString(`[a-zA-Z]+`, s); match {
+		return false, ErrNotANumber
 	}
 
-	match, _ := regexp.MatchString(`[a-z]+`, s)
-	return !match
+	if len(s) < 4 {
+		return false, ErrTooSmall
+	}
+
+	return true, nil
 }
 
 // CanParseIntoMachine determines if the user input can be handled by this parser.
 // The gist is that it should allow any number followed by a known suffix,
 // with no spaces in between the number of the suffix, ie:
 // 	1234654<suffix>
-func (sz *Size) CanParseIntoMachine(s string) bool {
+func (sz *Size) CanParseIntoMachine(s string) (bool, error) {
 	// Get the suffix passed
 	r := regexp.MustCompile(`(?i)[a-z]+$`)
 	inputSuffix := r.FindString(s)
@@ -187,7 +193,12 @@ func (sz *Size) CanParseIntoMachine(s string) bool {
 			break
 		}
 	}
-	return allowed
+
+	if !allowed {
+		return false, ErrUnknownSuffix
+	}
+
+	return allowed, nil
 }
 
 func (sz *Size) DoFromMachine(s string) string {
