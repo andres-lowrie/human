@@ -18,7 +18,7 @@ func (s *Size) GetParsers() []parsers.Parser {
 	return []parsers.Parser{parsers.NewSize("iec"), parsers.NewSize("si")}
 }
 
-func (s *Size) Run(direction, input string, args cmd.CliArgs) string {
+func (s *Size) Run(direction, input string, args cmd.CliArgs) (string, error) {
 	// We know from the implementation that `iec` is the default so we'll only
 	// check for others and default to `iec` if we find nothing
 	var p parsers.Parser
@@ -32,12 +32,12 @@ func (s *Size) Run(direction, input string, args cmd.CliArgs) string {
 	}
 
 	if ok, _ := p.CanParseFromMachine(input); direction == "from" && ok {
-		return p.DoFromMachine(input)
+		return p.DoFromMachine(input), nil
 	}
 
 	if ok, _ := p.CanParseIntoMachine(input); direction == "into" && ok {
-		return p.DoIntoMachine(input)
+		return p.DoIntoMachine(input), nil
 	}
 
-	return "Err: Input unparsable for `size`"
+	return "Err: Input unparsable for `size`", nil
 }
