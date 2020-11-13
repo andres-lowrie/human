@@ -34,5 +34,5 @@ func (n *Number) Run(direction string, input string, args CliArgs) string {
 		return p.DoIntoMachine(input)
 	}
 
-	return ""
+	return "Err: Input unparsable for `number`"
 }

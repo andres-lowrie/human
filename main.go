@@ -16,7 +16,7 @@ func main() {
 	// specific similar to `dig`, where `dig` with no args gives all the
 	// information it has, and then something like `dig +short` gives you a whole
 	// lot less
-	handlers := map[string]cmd.Command{"number": cmd.NewNumber()}
+	handlers := map[string]cmd.Command{"number": cmd.NewNumber(), "size": cmd.NewSize()}
 
 	// Figure out direction and which format
 	// we'll default to the `--from` direction since it might be the most common
