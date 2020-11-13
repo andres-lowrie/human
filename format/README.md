@@ -1,4 +1,4 @@
-# Commands
+# Formats
 
 ## Calling Pattern
 
@@ -12,7 +12,7 @@ _where_:
 
 `direction`: is one of `into` or `from` indicating what type of input to expect
 
-`format`: is one of the commands outlined further down in this document
+`format`: is one of the formats outlined further down in this document
 
 `args`: are optional settings for a given format which can be _flags_ or _options_ as per each format
 
@@ -38,12 +38,12 @@ Going the other way it would be:
 
 ### args
 
-Args is shorthand for _flags_ and _options_, each command defines its own set
+Args is shorthand for _flags_ and _options_, each format defines its own set
 of arguments as needed. We should strive to make arguments optional when
 possible to keep the calling pattern simple.
 
 ### format
 
-Formats are what each command represent, they are broken up as such
+Formats are what human is translating to and from
 
 @TODO make a website out of the markdown files , parse and load man pages
