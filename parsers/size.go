@@ -198,7 +198,7 @@ func (sz *Size) CanParseIntoMachine(s string) (bool, error) {
 		return false, ErrUnknownSuffix
 	}
 
-	return allowed, nil
+	return true, nil
 }
 
 func (sz *Size) DoFromMachine(s string) string {
