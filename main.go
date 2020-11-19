@@ -17,6 +17,7 @@ func main() {
 	// specific similar to `dig`, where `dig` with no args gives all the
 	// information it has, and then something like `dig +short` gives you a whole
 	// lot less
+	// @TODO see if we can use GetParsers instead of instantiating directly
 	handlers := map[string]format.Format{"number": format.NewNumber(), "size": format.NewSize()}
 
 	// Figure out direction and which format
@@ -58,7 +59,7 @@ func main() {
 	var output string
 	if format == "" {
 		for _, c := range handlers {
-			output = c.Run(direction, input, args)
+			output, _ = c.Run(direction, input, args)
 			if output != "" {
 				fmt.Println("Output", output)
 			}
@@ -72,7 +73,7 @@ func main() {
 		return
 	}
 
-	output = c.Run(direction, input, args)
+	output, _ = c.Run(direction, input, args)
 	if output != "" {
 		fmt.Println("Output", output)
 	}
