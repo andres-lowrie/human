@@ -39,5 +39,5 @@ func (s *Size) Run(direction, input string, args cmd.CliArgs) (string, error) {
 		return p.DoIntoMachine(input), nil
 	}
 
-	return "Err: Input unparsable for `size`", nil
+	return "", ErrUnparseableInput
 }
