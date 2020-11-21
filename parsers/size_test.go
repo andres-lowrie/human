@@ -64,7 +64,7 @@ func TestSizeCanParseFromMachine(t *testing.T) {
 	}
 }
 
-func TestCanParseIntoMachine(t *testing.T) {
+func TestCanParseIntoMachineHappyPath(t *testing.T) {
 	tests := []struct {
 		units string
 		in    string
@@ -129,9 +129,8 @@ func TestCanParseIntoMachine(t *testing.T) {
 		{"iec", "exbi", true, nil},
 		{"iec", "zebi", true, nil},
 		{"iec", "yobi", true, nil},
-		// Nonsense
-		{"iec", "xafadfa", false, ErrUnknownSuffix},
-		{"si", "234Af", false, ErrUnknownSuffix},
+		// It should allow decimal in the number
+		{"iec", "100.50ki", true, nil},
 	}
 
 	for i, tt := range tests {
@@ -151,48 +150,82 @@ func TestCanParseIntoMachine(t *testing.T) {
 	}
 }
 
+func TestCanParseIntoMachineEdgeCases(t *testing.T) {
+	tests := []struct {
+		units string
+		in    string
+		out   bool
+		err   error
+	}{
+		// Nonsense
+		{"iec", "xafadfa", false, ErrUnparsable},
+		{"si", "234Af", false, ErrUnknownSuffix},
+		// Ensure regex pulls format correctly
+		{"iec", "abv0ki", false, ErrUnparsable},
+		// It should only allow 1 decimal place
+		{"iec", "100.50.3ki", false, ErrUnparsable},
+	}
+
+	for i, tt := range tests {
+		sizeP := NewSize(tt.units)
+		t.Run(tt.in, func(t *testing.T) {
+			got, err := sizeP.CanParseIntoMachine(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
+			}
+		})
+	}
+}
+
 func TestSizeDoFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
+		err error
 	}{
 		// Handle "common" sizes (whatever that means lol)
-		{"1", "1.0B"},
-		{"10", "10.0B"},
-		{"100", "100.0B"},
-		{"1000", "1.0Kb"},
-		{"10000", "10.0Kb"},
-		{"100000", "100.0Kb"},
-		{"1000000", "1.0Mb"},
-		{"10000000", "10.0Mb"},
-		{"100000000", "100.0Mb"},
-		{"1000000000", "1.0Gb"},
-		{"10000000000", "10.0Gb"},
-		{"100000000000", "100.0Gb"},
-		{"1000000000000", "1.0Tb"},
-		{"10000000000000", "10.0Tb"},
-		{"100000000000000", "100.0Tb"},
-		{"1000000000000000", "1.0Pb"},
-		{"10000000000000000", "10.0Pb"},
-		{"100000000000000000", "100.0Pb"},
-		{"1000000000000000000", "1.0Eb"},
-		{"10000000000000000000", "10.0Eb"},
-		{"100000000000000000000", "100.0Eb"},
-		{"1000000000000000000000", "1.0Zb"},
-		{"10000000000000000000000", "10.0Zb"},
-		{"100000000000000000000000", "100.0Zb"},
-		{"1000000000000000000000000", "1.0Yb"},
-		{"10000000000000000000000000", "10.0Yb"},
-		{"100000000000000000000000000", "100.0Yb"},
-		{"142089140826193550568923157", "142.1Yb"},
+		{"1", "1.0B", nil},
+		{"10", "10.0B", nil},
+		{"100", "100.0B", nil},
+		{"1000", "1.0Kb", nil},
+		{"10000", "10.0Kb", nil},
+		{"100000", "100.0Kb", nil},
+		{"1000000", "1.0Mb", nil},
+		{"10000000", "10.0Mb", nil},
+		{"100000000", "100.0Mb", nil},
+		{"1000000000", "1.0Gb", nil},
+		{"10000000000", "10.0Gb", nil},
+		{"100000000000", "100.0Gb", nil},
+		{"1000000000000", "1.0Tb", nil},
+		{"10000000000000", "10.0Tb", nil},
+		{"100000000000000", "100.0Tb", nil},
+		{"1000000000000000", "1.0Pb", nil},
+		{"10000000000000000", "10.0Pb", nil},
+		{"100000000000000000", "100.0Pb", nil},
+		{"1000000000000000000", "1.0Eb", nil},
+		{"10000000000000000000", "10.0Eb", nil},
+		{"100000000000000000000", "100.0Eb", nil},
+		{"1000000000000000000000", "1.0Zb", nil},
+		{"10000000000000000000000", "10.0Zb", nil},
+		{"100000000000000000000000", "100.0Zb", nil},
+		{"1000000000000000000000000", "1.0Yb", nil},
+		{"10000000000000000000000000", "10.0Yb", nil},
+		{"100000000000000000000000000", "100.0Yb", nil},
+		{"142089140826193550568923157", "142.1Yb", nil},
 	}
 
 	sizeP := NewSize("si")
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := sizeP.DoFromMachine(tt.in)
+			got, err := sizeP.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}
@@ -202,45 +235,49 @@ func TestSizeDoFromMachineIEC(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
+		err error
 	}{
 		// Handle "common" sizes (whatever that means lol)
-		{"1", "1.0B"},
-		{"10", "10.0B"},
-		{"100", "100.0B"},
-		{"1000", "1.0Ki"},
-		{"1024", "1.0Ki"},
-		{"10000", "9.8Ki"},
-		{"100000", "97.7Ki"},
-		{"1000000", "1.0Mi"},
-		{"10000000", "9.5Mi"},
-		{"100000000", "95.4Mi"},
-		{"1000000000", "0.9Gi"},
-		{"10000000000", "9.3Gi"},
-		{"100000000000", "93.1Gi"},
-		{"1000000000000", "0.9Ti"},
-		{"10000000000000", "9.1Ti"},
-		{"100000000000000", "90.9Ti"},
-		{"1000000000000000", "0.9Pi"},
-		{"10000000000000000", "8.9Pi"},
-		{"100000000000000000", "88.8Pi"},
-		{"1000000000000000000", "0.9Ei"},
-		{"10000000000000000000", "8.7Ei"},
-		{"100000000000000000000", "86.7Ei"},
-		{"1000000000000000000000", "0.8Zi"},
-		{"10000000000000000000000", "8.5Zi"},
-		{"100000000000000000000000", "84.7Zi"},
-		{"1000000000000000000000000", "0.8Yi"},
-		{"10000000000000000000000000", "8.3Yi"},
-		{"100000000000000000000000000", "82.7Yi"},
-		{"142089140826193550568923157", "117.5Yi"},
+		{"1", "1.0B", nil},
+		{"10", "10.0B", nil},
+		{"100", "100.0B", nil},
+		{"1000", "1.0Ki", nil},
+		{"1024", "1.0Ki", nil},
+		{"10000", "9.8Ki", nil},
+		{"100000", "97.7Ki", nil},
+		{"1000000", "1.0Mi", nil},
+		{"10000000", "9.5Mi", nil},
+		{"100000000", "95.4Mi", nil},
+		{"1000000000", "0.9Gi", nil},
+		{"10000000000", "9.3Gi", nil},
+		{"100000000000", "93.1Gi", nil},
+		{"1000000000000", "0.9Ti", nil},
+		{"10000000000000", "9.1Ti", nil},
+		{"100000000000000", "90.9Ti", nil},
+		{"1000000000000000", "0.9Pi", nil},
+		{"10000000000000000", "8.9Pi", nil},
+		{"100000000000000000", "88.8Pi", nil},
+		{"1000000000000000000", "0.9Ei", nil},
+		{"10000000000000000000", "8.7Ei", nil},
+		{"100000000000000000000", "86.7Ei", nil},
+		{"1000000000000000000000", "0.8Zi", nil},
+		{"10000000000000000000000", "8.5Zi", nil},
+		{"100000000000000000000000", "84.7Zi", nil},
+		{"1000000000000000000000000", "0.8Yi", nil},
+		{"10000000000000000000000000", "8.3Yi", nil},
+		{"100000000000000000000000000", "82.7Yi", nil},
+		{"142089140826193550568923157", "117.5Yi", nil},
 	}
 
 	sizeP := NewSize("iec")
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := sizeP.DoFromMachine(tt.in)
+			got, err := sizeP.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}
@@ -255,30 +292,34 @@ func TestSizeDoIntoMachine(t *testing.T) {
 		inputType interface{}
 		in        string
 		out       string
+		err       error
 	}{
-		// IEC
 		// bytes
-		{"iec", "1b", "1"},
-		{"iec", "1B", "1"},
-		{"iec", "100B", "100"},
-		{"iec", "1000B", "1000"},
-		{"iec", "1000000000B", "1000000000"},
+		{"iec", "1b", "1", nil},
+		{"iec", "1B", "1", nil},
+		{"iec", "100B", "100", nil},
+		{"iec", "1000B", "1000", nil},
+		{"iec", "1000000000B", "1000000000", nil},
 		// @TODO add these
-		// {"iec", "1Byte", "1"},
-		// {"iec", "1BYTE", "1"},
-		{"iec", "1k", "1024"},
-		{"iec", "10k", "10240"},
-		{"iec", "10000k", "10240000"},
-		{"si", "10000k", "10000000"},
-		{"si", "10000gb", "10000000000000"},
+		// {"iec", "1Byte", "1",nil},
+		// {"iec", "1BYTE", "1",nil},
+		{"iec", "1k", "1024", nil},
+		{"iec", "10k", "10240", nil},
+		{"iec", "10000k", "10240000", nil},
+		{"si", "10000k", "10000000", nil},
+		{"si", "10000gb", "10000000000000", nil},
+		{"iec", "1x", "", ErrUnknownSuffix},
 	}
 
 	for i, tt := range tests {
 		sizeP := NewSize(tt.inputType)
 		t.Run(tt.in, func(t *testing.T) {
-			got := sizeP.DoIntoMachine(tt.in)
+			got, err := sizeP.DoIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}

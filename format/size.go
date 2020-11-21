@@ -32,12 +32,12 @@ func (s *Size) Run(direction, input string, args cmd.CliArgs) (string, error) {
 	}
 
 	if ok, _ := p.CanParseFromMachine(input); direction == "from" && ok {
-		return p.DoFromMachine(input), nil
+		return p.DoFromMachine(input)
 	}
 
 	if ok, _ := p.CanParseIntoMachine(input); direction == "into" && ok {
-		return p.DoIntoMachine(input), nil
+		return p.DoIntoMachine(input)
 	}
 
-	return "", ErrUnparseableInput
+	return "", parsers.ErrUnparsable
 }

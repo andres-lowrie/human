@@ -93,30 +93,34 @@ func TestNumberWordDoFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
+		err error
 	}{
 		// Each position
-		{"1000", "1 thousand"},
-		{"10000", "10 thousand"},
-		{"100000", "100 thousand"},
+		{"1000", "1 thousand", nil},
+		{"10000", "10 thousand", nil},
+		{"100000", "100 thousand", nil},
 		// First decimal
-		{"12345678", "12.3 million"},
+		{"12345678", "12.3 million", nil},
 		// Delimiters
-		{"1,000,000", "1 million"},
-		{"1.000.000", "1 million"},
-		{"1 000 000", "1 million"},
+		{"1,000,000", "1 million", nil},
+		{"1.000.000", "1 million", nil},
+		{"1 000 000", "1 million", nil},
 		// All the names
-		{"1000000", "1 million"},
-		{"1000000000", "1 billion"},
-		{"1000000000000", "1 trillion"},
-		{"1,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", "1 vigintillion"},
+		{"1000000", "1 million", nil},
+		{"1000000000", "1 billion", nil},
+		{"1000000000000", "1 trillion", nil},
+		{"1,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000", "1 vigintillion", nil},
 	}
 
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numword.DoFromMachine(tt.in)
+			got, err := numword.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}
@@ -126,23 +130,27 @@ func TestNumberWordDoIntoMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
+		err error
 	}{
-		{"1 million", "1000000"},
-		{"1.3 million", "1300000"},
-		{"10 billion", "10000000000"},
-		{"1 MILLION", "1000000"},
-		{"100 trillion", "100000000000000"},
-		{"10.3 million", "10300000"},
-		{"100.3 million", "100300000"},
-		{"1 vigintillion", "1000000000000000000000000000000000000000000000000000000000000000"},
+		{"1 million", "1000000", nil},
+		{"1.3 million", "1300000", nil},
+		{"10 billion", "10000000000", nil},
+		{"1 MILLION", "1000000", nil},
+		{"100 trillion", "100000000000000", nil},
+		{"10.3 million", "10300000", nil},
+		{"100.3 million", "100300000", nil},
+		{"1 vigintillion", "1000000000000000000000000000000000000000000000000000000000000000", nil},
 	}
 
 	numword := NewNumberWord()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numword.DoIntoMachine(tt.in)
+			got, err := numword.DoIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}

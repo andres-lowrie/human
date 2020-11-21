@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/andres-lowrie/human/cmd"
+	"github.com/andres-lowrie/human/parsers"
 )
 
 func TestNumberFormatRun(t *testing.T) {
@@ -18,9 +19,9 @@ func TestNumberFormatRun(t *testing.T) {
 		{"from", "10000", cmd.ParseCliArgs([]string{""}), "10,000", nil},
 		{"into", "100,000,000", cmd.ParseCliArgs([]string{""}), "100000000", nil},
 		// Should return error on bad input
-		{"from", "notanumber", cmd.ParseCliArgs([]string{"-w"}), "", ErrUnparseableInput},
+		{"from", "notanumber", cmd.ParseCliArgs([]string{"-w"}), "", parsers.ErrUnparsable},
 		// Should return an error when nonsense input is detected
-		{"into", "xxxx", cmd.ParseCliArgs([]string{"-g"}), "", ErrUnparseableInput},
+		{"into", "xxxx", cmd.ParseCliArgs([]string{"-g"}), "", parsers.ErrUnparsable},
 		// Happy path
 		{"into", "250 thousand", cmd.ParseCliArgs([]string{"-w"}), "250000", nil},
 		{"from", "250000", cmd.ParseCliArgs([]string{"-w"}), "250 thousand", nil},

@@ -182,8 +182,10 @@ func (sz *Size) CanParseFromMachine(s string) (bool, error) {
 // 	1234654<suffix>
 func (sz *Size) CanParseIntoMachine(s string) (bool, error) {
 	// Get the suffix passed
-	r := regexp.MustCompile(`(?i)[a-z]+$`)
-	inputSuffix := r.FindString(s)
+	_, inputSuffix, err := getInputComponents(s)
+	if err != nil {
+		return false, err
+	}
 
 	// Does this suffix correspond to the units we're using?
 	allowed := false
@@ -198,26 +200,29 @@ func (sz *Size) CanParseIntoMachine(s string) (bool, error) {
 		return false, ErrUnknownSuffix
 	}
 
-	return allowed, nil
+	return true, nil
 }
 
-func (sz *Size) DoFromMachine(s string) string {
-
+func (sz *Size) DoFromMachine(s string) (string, error) {
 	opts := sz.trans[len(s)]
-	n, _ := strconv.ParseFloat(s, 64)
+
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return "", err
+	}
 
 	denominator := math.Pow(sz.base, opts.power)
 	res := n / denominator
 
-	return fmt.Sprintf("%.1f%s", res, opts.suffix)
+	return fmt.Sprintf("%.1f%s", res, opts.suffix), nil
 }
 
-func (sz *Size) DoIntoMachine(s string) string {
+func (sz *Size) DoIntoMachine(s string) (string, error) {
 	// Pull out the number and the suffix from the string
-	r := regexp.MustCompile(`([0-9]+)([a-zA-Z]+)`)
-	match := r.FindStringSubmatch(s)
-	num := match[1]
-	suffix := match[2]
+	num, suffix, err := getInputComponents(s)
+	if err != nil {
+		return "", err
+	}
 
 	// Figure out which lookup to use.
 	// When looking up the suffixes we only care about the first letter since the
@@ -239,9 +244,31 @@ func (sz *Size) DoIntoMachine(s string) string {
 			break
 		}
 	}
-	multiplier := math.Pow(sz.base, lookup.power)
-	n, _ := strconv.ParseFloat(num, 64)
-	res := n * multiplier
 
-	return fmt.Sprintf("%d", int(res))
+	// If we didn't find the suffix then we don't know how to handle it
+	if lookup.suffix == "" {
+		return "", ErrUnknownSuffix
+	}
+
+	multiplier := math.Pow(sz.base, lookup.power)
+	res := num * multiplier
+
+	return fmt.Sprintf("%d", int(res)), nil
+}
+
+// getInputComponents splits out the input string into the expected components:
+// 	the number
+// 	and the size suffix
+func getInputComponents(s string) (float64, string, error) {
+	r := regexp.MustCompile(`(?i)^([0-9]+)(\.[0-9]+)?([a-z]+)`)
+	match := r.FindStringSubmatch(s)
+
+	if len(match) != 4 {
+		return 0, "", ErrUnparsable
+	}
+
+	// we got decimal
+	num, err := strconv.ParseFloat(match[1]+match[2], 64)
+	suffix := match[3]
+	return num, suffix, err
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/andres-lowrie/human/cmd"
+	"github.com/andres-lowrie/human/parsers"
 )
 
 func TestSizeFormatRun(t *testing.T) {
@@ -21,7 +22,7 @@ func TestSizeFormatRun(t *testing.T) {
 		{"from", "1024", cmd.ParseCliArgs([]string{"--units", "iec"}), "1.0Ki", nil},
 		{"from", "1000", cmd.ParseCliArgs([]string{"--units", "si"}), "1.0Kb", nil},
 		// Should fail if input is unparsable
-		{"from", "xxxx", cmd.ParseCliArgs([]string{""}), "", ErrUnparseableInput},
+		{"from", "xxxx", cmd.ParseCliArgs([]string{""}), "", parsers.ErrUnparsable},
 		// Happy Path
 		{"from", "2097152", cmd.ParseCliArgs([]string{"--units", "iec"}), "2.0Mi", nil},
 		{"into", "1G", cmd.ParseCliArgs([]string{"--units", "si"}), "1000000000", nil},
