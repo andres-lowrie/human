@@ -110,33 +110,46 @@ func (n *NumberWord) CanParseIntoMachine(s string) (bool, error) {
 // Can accept delimited numbers
 // Uses NumberGroup to make an array
 // Rounds second group to nearest hundreds (i.e. 1 decimal place)
-func (n *NumberWord) DoFromMachine(s string) string {
+func (n *NumberWord) DoFromMachine(s string) (string, error) {
 	// Strip delimiters
 	r := regexp.MustCompile("[^0-9]")
 	s = r.ReplaceAllString(s, "")
 
-	numgroup := NewNumberGroup()
-	numbers := strings.Split(numgroup.DoFromMachine(s), ",")
+	// Let's reuse the numgroup logic since this should work practically the same
+	// way
+	var numbers []string
+	{
+		numgroup := NewNumberGroup()
+		nums, err := numgroup.DoFromMachine(s)
+		if err != nil {
+			return "", err
+		}
+		numbers = strings.Split(nums, ",")
+	}
 
 	var out strings.Builder
 	out.WriteString(numbers[0])
 
-	x, _ := strconv.ParseFloat(numbers[1], 64)
-	decimal := int(math.Round(x / 100.0))
+	num, err := strconv.ParseFloat(numbers[1], 64)
+	if err != nil {
+		return "", err
+	}
+
+	decimal := int(math.Round(num / 100.0))
 
 	if decimal > 0 {
 		out.WriteString("." + strconv.Itoa(decimal))
 	}
 	out.WriteString(" " + n.trans[len(numbers)].name)
 
-	return out.String()
+	return out.String(), nil
 }
 
 // DoIntoMachine ...
 // Only works with highest power
 // and first digit (e.g. 100.3 Billion, not 100,300 Million)
 // Returns a numeric string e.g. 1 thousand => 1000
-func (n *NumberWord) DoIntoMachine(s string) string {
+func (n *NumberWord) DoIntoMachine(s string) (string, error) {
 	num, word := splitHumanNumberWord(s)
 	var power int
 
@@ -155,7 +168,7 @@ func (n *NumberWord) DoIntoMachine(s string) string {
 		out.WriteString(num)
 	}
 	out.WriteString(strings.Repeat("0", power))
-	return out.String()
+	return out.String(), nil
 }
 
 // splitHumanNumberWord takes a digit word pair and returns the individual components

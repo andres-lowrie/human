@@ -9,8 +9,8 @@ import (
 type Parser interface {
 	CanParseIntoMachine(string) (bool, error)
 	CanParseFromMachine(string) (bool, error)
-	DoIntoMachine(string) string
-	DoFromMachine(string) string
+	DoIntoMachine(string) (string, error)
+	DoFromMachine(string) (string, error)
 }
 
 // General purpose errors
@@ -37,12 +37,12 @@ func (e *Empty) CanParseFromMachine(string) (bool, error) {
 	return true, nil
 }
 
-func (e *Empty) DoIntoMachine(string) string {
-	return "Not Yet Implemented"
+func (e *Empty) DoIntoMachine(string) (string, error) {
+	return "Not Yet Implemented", nil
 }
 
-func (e *Empty) DoFromMachine(string) string {
-	return "Not Yet Implemented"
+func (e *Empty) DoFromMachine(string) (string, error) {
+	return "Not Yet Implemented", nil
 }
 
 // IsMachineNumber validates that a number:

@@ -203,22 +203,25 @@ func (sz *Size) CanParseIntoMachine(s string) (bool, error) {
 	return true, nil
 }
 
-func (sz *Size) DoFromMachine(s string) string {
-
+func (sz *Size) DoFromMachine(s string) (string, error) {
 	opts := sz.trans[len(s)]
-	n, _ := strconv.ParseFloat(s, 64)
+
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return "", err
+	}
 
 	denominator := math.Pow(sz.base, opts.power)
 	res := n / denominator
 
-	return fmt.Sprintf("%.1f%s", res, opts.suffix)
+	return fmt.Sprintf("%.1f%s", res, opts.suffix), nil
 }
 
-func (sz *Size) DoIntoMachine(s string) string {
+func (sz *Size) DoIntoMachine(s string) (string, error) {
 	// Pull out the number and the suffix from the string
 	num, suffix, err := getInputComponents(s)
 	if err != nil {
-		return err.Error()
+		return "", err
 	}
 
 	// Figure out which lookup to use.
@@ -237,7 +240,6 @@ func (sz *Size) DoIntoMachine(s string) string {
 	}
 	for _, v := range sz.trans {
 		if suffix == v.suffix {
-			fmt.Println("found a match")
 			lookup = v
 			break
 		}
@@ -245,13 +247,13 @@ func (sz *Size) DoIntoMachine(s string) string {
 
 	// If we didn't find the suffix then we don't know how to handle it
 	if lookup.suffix == "" {
-		return ""
+		return "", ErrUnknownSuffix
 	}
 
 	multiplier := math.Pow(sz.base, lookup.power)
 	res := num * multiplier
 
-	return fmt.Sprintf("%d", int(res))
+	return fmt.Sprintf("%d", int(res)), nil
 }
 
 // getInputComponents splits out the input string into the expected components:
@@ -261,18 +263,12 @@ func getInputComponents(s string) (float64, string, error) {
 	r := regexp.MustCompile(`(?i)^([0-9]+)(\.[0-9]+)?([a-z]+)`)
 	match := r.FindStringSubmatch(s)
 
-	switch len(match) {
-	case 4:
-		// we got decimal
-		num, err := strconv.ParseFloat(match[1]+match[2], 64)
-		suffix := match[3]
-		return num, suffix, err
-	case 3:
-		// no decimal
-		num, err := strconv.ParseFloat(match[1], 64)
-		suffix := match[2]
-		return num, suffix, err
-	default:
+	if len(match) != 4 {
 		return 0, "", ErrUnparsable
 	}
+
+	// we got decimal
+	num, err := strconv.ParseFloat(match[1]+match[2], 64)
+	suffix := match[3]
+	return num, suffix, err
 }

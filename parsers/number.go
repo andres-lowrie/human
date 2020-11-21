@@ -61,7 +61,7 @@ func (n *NumberGroup) CanParseIntoMachine(s string) (bool, error) {
 
 // DoFromMachine takes a string made up of contiguous "0-9" characters and
 // returns number groupings
-func (n *NumberGroup) DoFromMachine(s string) string {
+func (n *NumberGroup) DoFromMachine(s string) (string, error) {
 	// Figure out where to place commas
 	var buf strings.Builder
 	bufLen := len(s) - 1
@@ -82,10 +82,10 @@ func (n *NumberGroup) DoFromMachine(s string) string {
 		out.WriteByte(outStr[i])
 	}
 
-	return out.String()
+	return out.String(), nil
 }
 
 // DoIntoMachine ...
-func (n *NumberGroup) DoIntoMachine(s string) string {
-	return strings.Replace(s, ",", "", -1)
+func (n *NumberGroup) DoIntoMachine(s string) (string, error) {
+	return strings.Replace(s, ",", "", -1), nil
 }

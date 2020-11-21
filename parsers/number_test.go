@@ -67,26 +67,30 @@ func TestNumberGroupDoFromMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
+		err error
 	}{
-		{"1000", "1,000"},
-		{"10000", "10,000"},
-		{"100000", "100,000"},
-		{"1000000", "1,000,000"},
-		{"10000000", "10,000,000"},
-		{"100000000", "100,000,000"},
-		{"1000000000", "1,000,000,000"},
-		{"10000000000", "10,000,000,000"},
-		{"100000000000", "100,000,000,000"},
+		{"1000", "1,000", nil},
+		{"10000", "10,000", nil},
+		{"100000", "100,000", nil},
+		{"1000000", "1,000,000", nil},
+		{"10000000", "10,000,000", nil},
+		{"100000000", "100,000,000", nil},
+		{"1000000000", "1,000,000,000", nil},
+		{"10000000000", "10,000,000,000", nil},
+		{"100000000000", "100,000,000,000", nil},
 		// This one is to show the logic that's being employed
-		{"abcdefghijklmnopqrstuvwxyz", "ab,cde,fgh,ijk,lmn,opq,rst,uvw,xyz"},
+		{"abcdefghijklmnopqrstuvwxyz", "ab,cde,fgh,ijk,lmn,opq,rst,uvw,xyz", nil},
 	}
 
 	numbergroup := NewNumberGroup()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numbergroup.DoFromMachine(tt.in)
+			got, err := numbergroup.DoFromMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}
@@ -96,24 +100,28 @@ func TestNumberGroupDoIntoMachine(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
+		err error
 	}{
-		{"1,000", "1000"},
-		{"10,000", "10000"},
-		{"100,000", "100000"},
-		{"1,000,000", "1000000"},
-		{"10,000,000", "10000000"},
-		{"100,000,000", "100000000"},
-		{"1,000,000,000", "1000000000"},
-		{"10,000,000,000", "10000000000"},
-		{"100,000,000,000", "100000000000"},
+		{"1,000", "1000", nil},
+		{"10,000", "10000", nil},
+		{"100,000", "100000", nil},
+		{"1,000,000", "1000000", nil},
+		{"10,000,000", "10000000", nil},
+		{"100,000,000", "100000000", nil},
+		{"1,000,000,000", "1000000000", nil},
+		{"10,000,000,000", "10000000000", nil},
+		{"100,000,000,000", "100000000000", nil},
 	}
 
 	numbergroup := NewNumberGroup()
 	for i, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			got := numbergroup.DoIntoMachine(tt.in)
+			got, err := numbergroup.DoIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
 			}
 		})
 	}
