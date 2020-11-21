@@ -285,7 +285,6 @@ func TestSizeDoIntoMachine(t *testing.T) {
 		in        string
 		out       string
 	}{
-		// IEC
 		// bytes
 		{"iec", "1b", "1"},
 		{"iec", "1B", "1"},
@@ -300,6 +299,7 @@ func TestSizeDoIntoMachine(t *testing.T) {
 		{"iec", "10000k", "10240000"},
 		{"si", "10000k", "10000000"},
 		{"si", "10000gb", "10000000000000"},
+		{"iec", "1x", ""},
 	}
 
 	for i, tt := range tests {

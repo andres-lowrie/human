@@ -216,10 +216,10 @@ func (sz *Size) DoFromMachine(s string) string {
 
 func (sz *Size) DoIntoMachine(s string) string {
 	// Pull out the number and the suffix from the string
-	r := regexp.MustCompile(`([0-9]+)([a-zA-Z]+)`)
-	match := r.FindStringSubmatch(s)
-	num := match[1]
-	suffix := match[2]
+	num, suffix, err := getInputComponents(s)
+	if err != nil {
+		return err.Error()
+	}
 
 	// Figure out which lookup to use.
 	// When looking up the suffixes we only care about the first letter since the
@@ -237,13 +237,19 @@ func (sz *Size) DoIntoMachine(s string) string {
 	}
 	for _, v := range sz.trans {
 		if suffix == v.suffix {
+			fmt.Println("found a match")
 			lookup = v
 			break
 		}
 	}
+
+	// If we didn't find the suffix then we don't know how to handle it
+	if lookup.suffix == "" {
+		return ""
+	}
+
 	multiplier := math.Pow(sz.base, lookup.power)
-	n, _ := strconv.ParseFloat(num, 64)
-	res := n * multiplier
+	res := num * multiplier
 
 	return fmt.Sprintf("%d", int(res))
 }
