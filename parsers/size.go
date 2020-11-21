@@ -182,8 +182,10 @@ func (sz *Size) CanParseFromMachine(s string) (bool, error) {
 // 	1234654<suffix>
 func (sz *Size) CanParseIntoMachine(s string) (bool, error) {
 	// Get the suffix passed
-	r := regexp.MustCompile(`(?i)[a-z]+$`)
-	inputSuffix := r.FindString(s)
+	_, inputSuffix, err := getInputComponents(s)
+	if err != nil {
+		return false, err
+	}
 
 	// Does this suffix correspond to the units we're using?
 	allowed := false
@@ -244,4 +246,27 @@ func (sz *Size) DoIntoMachine(s string) string {
 	res := n * multiplier
 
 	return fmt.Sprintf("%d", int(res))
+}
+
+// getInputComponents splits out the input string into the expected components:
+// 	the number
+// 	and the size suffix
+func getInputComponents(s string) (float64, string, error) {
+	r := regexp.MustCompile(`(?i)^([0-9]+)(\.[0-9]+)?([a-z]+)`)
+	match := r.FindStringSubmatch(s)
+
+	switch len(match) {
+	case 4:
+		// we got decimal
+		num, err := strconv.ParseFloat(match[1]+match[2], 64)
+		suffix := match[3]
+		return num, suffix, err
+	case 3:
+		// no decimal
+		num, err := strconv.ParseFloat(match[1], 64)
+		suffix := match[2]
+		return num, suffix, err
+	default:
+		return 0, "", ErrUnparsable
+	}
 }

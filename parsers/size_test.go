@@ -64,7 +64,7 @@ func TestSizeCanParseFromMachine(t *testing.T) {
 	}
 }
 
-func TestCanParseIntoMachine(t *testing.T) {
+func TestCanParseIntoMachineHappyPath(t *testing.T) {
 	tests := []struct {
 		units string
 		in    string
@@ -129,9 +129,8 @@ func TestCanParseIntoMachine(t *testing.T) {
 		{"iec", "exbi", true, nil},
 		{"iec", "zebi", true, nil},
 		{"iec", "yobi", true, nil},
-		// Nonsense
-		{"iec", "xafadfa", false, ErrUnknownSuffix},
-		{"si", "234Af", false, ErrUnknownSuffix},
+		// It should allow decimal in the number
+		{"iec", "100.50ki", true, nil},
 	}
 
 	for i, tt := range tests {
@@ -141,6 +140,36 @@ func TestCanParseIntoMachine(t *testing.T) {
 			input := fmt.Sprintf("%d%s", num, tt.in)
 
 			got, err := sizeP.CanParseIntoMachine(input)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
+			}
+		})
+	}
+}
+
+func TestCanParseIntoMachineEdgeCases(t *testing.T) {
+	tests := []struct {
+		units string
+		in    string
+		out   bool
+		err   error
+	}{
+		// Nonsense
+		{"iec", "xafadfa", false, ErrUnparsable},
+		{"si", "234Af", false, ErrUnknownSuffix},
+		// Ensure regex pulls format correctly
+		{"iec", "abv0ki", false, ErrUnparsable},
+		// It should only allow 1 decimal place
+		{"iec", "100.50.3ki", false, ErrUnparsable},
+	}
+
+	for i, tt := range tests {
+		sizeP := NewSize(tt.units)
+		t.Run(tt.in, func(t *testing.T) {
+			got, err := sizeP.CanParseIntoMachine(tt.in)
 			if got != tt.out {
 				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.out, got)
 			}
