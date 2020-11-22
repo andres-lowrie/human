@@ -4,13 +4,29 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/andres-lowrie/human/cmd"
 	"github.com/andres-lowrie/human/format"
+	"github.com/andres-lowrie/human/io"
 )
 
+type FakeWriter struct{}
+
+func (f FakeWriter) Write(p []byte) (int, error) {
+	return 0, nil
+}
+
 func main() {
+
+	// logger := log.New(FakeWriter{}, "", log.Lshortfile)
+	// var b bytes.Buffer
+	// logger := log.New(&b, "BLAH", log.Lshortfile)
+	// logger.SetOutput(os.Stdout)
+	// logger.Printf("x")
 	// Figure out what was passed into the program
-	args := cmd.ParseCliArgs(os.Args[1:])
+	log := io.NewLogger(io.INFO, true)
+	log.Info("A log here")
+	log.Warn("Probably gonna change this")
+	log.Debug("We hosed son!")
+	args := io.ParseCliArgs(os.Args[1:])
 
 	// The idea here is that human will print out all parseable values for each
 	// known parser (the below map); ie: arguments are used to make it more

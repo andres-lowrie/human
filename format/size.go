@@ -1,7 +1,7 @@
 package format
 
 import (
-	"github.com/andres-lowrie/human/cmd"
+	"github.com/andres-lowrie/human/io"
 	"github.com/andres-lowrie/human/parsers"
 )
 
@@ -18,7 +18,7 @@ func (s *Size) GetParsers() []parsers.Parser {
 	return []parsers.Parser{parsers.NewSize("iec"), parsers.NewSize("si")}
 }
 
-func (s *Size) Run(direction, input string, args cmd.CliArgs) (string, error) {
+func (s *Size) Run(direction, input string, args io.CliArgs) (string, error) {
 	// We know from the implementation that `iec` is the default so we'll only
 	// check for others and default to `iec` if we find nothing
 	var p parsers.Parser
