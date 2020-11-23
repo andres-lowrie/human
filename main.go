@@ -3,30 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/andres-lowrie/human/format"
 	"github.com/andres-lowrie/human/io"
+	"github.com/davecgh/go-spew/spew"
 )
 
-type FakeWriter struct{}
-
-func (f FakeWriter) Write(p []byte) (int, error) {
-	return 0, nil
-}
-
-func main() {
-
-	// logger := log.New(FakeWriter{}, "", log.Lshortfile)
-	// var b bytes.Buffer
-	// logger := log.New(&b, "BLAH", log.Lshortfile)
-	// logger.SetOutput(os.Stdout)
-	// logger.Printf("x")
-	// Figure out what was passed into the program
-	log := io.NewLogger(io.INFO, true)
-	log.Info("A log here")
-	log.Warn("Probably gonna change this")
-	log.Debug("We hosed son!")
-	args := io.ParseCliArgs(os.Args[1:])
+func run(log io.Ourlog, args io.CliArgs) {
+	log.Debug("Program start")
+	log.Debug(spew.Sdump(args))
 
 	// The idea here is that human will print out all parseable values for each
 	// known parser (the below map); ie: arguments are used to make it more
@@ -40,7 +26,7 @@ func main() {
 	// we'll default to the `--from` direction since it might be the most common
 	// usecase i.e. we want to go "from" machine into human format
 	if len(args.Positionals) < 1 {
-		fmt.Println("@TODO read arguments from stdin")
+		log.Warn("@TODO read arguments from stdin")
 		return
 	}
 
@@ -49,8 +35,6 @@ func main() {
 	format := ""
 	for _, d := range []string{"into", "from"} {
 		if val, ok := args.Options[d]; ok && val != "" {
-			fmt.Println("val", val)
-
 			direction = d
 			format = val
 		}
@@ -68,16 +52,16 @@ func main() {
 			input = args.Positionals[1]
 		}
 	}
-	fmt.Println("format", format)
-	fmt.Println("input", input)
-	fmt.Println("direction", direction)
+	log.Info("format is set to: ", format)
+	log.Info("input is set to: ", input)
+	log.Info("direction is set to: ", direction)
 
 	var output string
 	if format == "" {
 		for _, c := range handlers {
 			output, _ = c.Run(direction, input, args)
 			if output != "" {
-				fmt.Println("Output", output)
+				log.Info("output is set to: ", output)
 			}
 		}
 		return
@@ -85,13 +69,36 @@ func main() {
 
 	c, ok := handlers[format]
 	if !ok {
-		fmt.Println("unknown format, nothing to do")
+		log.Info("unknown format '%s', nothing to do", format)
 		return
 	}
 
 	output, _ = c.Run(direction, input, args)
 	if output != "" {
-		fmt.Println("Output", output)
+		fmt.Println("output is set to: ", output)
 	}
 
+}
+
+func main() {
+	args := io.ParseCliArgs(os.Args[1:])
+	log := io.NewLogger(io.OFF, false)
+
+	// Figure out if we have to enable the logger
+	if args.Flags["v"] {
+		log = io.NewLogger(io.INFO, true)
+	}
+
+	if len(args.Options["v"]) > 0 {
+		if n, err := strconv.Atoi(args.Options["v"]); err == nil {
+			switch n {
+			case 2:
+				log = io.NewLogger(io.WARN, true)
+			default: // allows users to spam the v's
+				log = io.NewLogger(io.DEBUG, true)
+			}
+		}
+	}
+
+	run(log, args)
 }

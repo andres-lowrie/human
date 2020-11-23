@@ -10,7 +10,7 @@ import (
 func TestItGivesBackInterfaceWhenTurnedOff(t *testing.T) {
 	got := NewLogger(OFF, false)
 
-	if v, ok := interface{}(got).(ourlog); !ok {
+	if v, ok := interface{}(got).(Ourlog); !ok {
 		t.Errorf("Case Inteface: it should give back an interface `%v+`", v)
 	}
 }
