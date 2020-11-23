@@ -1,4 +1,4 @@
-package cmd
+package io
 
 import (
 	"reflect"
@@ -148,15 +148,13 @@ func TestParseCliArgs(t *testing.T) {
 				Positionals: []string{},
 			},
 		},
-		// human -foo
-		// adding this for usage clarity, the fact that the implementation uses a
-		// map takes care of this however wanted to bubble up the behavior
+		// human -vvv
 		{
-			"Flags handle repetitive flags",
-			[]string{"-foo"},
+			"Repeated flags get counted instead of bools",
+			[]string{"-vvv"},
 			CliArgs{
-				Flags:       map[string]bool{"f": true, "o": true},
-				Options:     map[string]string{},
+				Flags:       map[string]bool{},
+				Options:     map[string]string{"v": "3"},
 				Positionals: []string{},
 			},
 		},
@@ -164,8 +162,8 @@ func TestParseCliArgs(t *testing.T) {
 			"Kitchen Sink",
 			[]string{"first", "-foo", "-b", "-a", "-r", "--opt", "--foo=bar", "baz", "--long", "wat", "last"},
 			CliArgs{
-				Flags:       map[string]bool{"f": true, "o": true, "b": true, "a": true, "r": true},
-				Options:     map[string]string{"foo": "bar", "opt": "", "long": "wat"},
+				Flags:       map[string]bool{"f": true, "b": true, "a": true, "r": true},
+				Options:     map[string]string{"foo": "bar", "opt": "", "long": "wat", "o": "2"},
 				Positionals: []string{"first", "baz", "last"},
 			},
 		},

@@ -1,7 +1,7 @@
 package format
 
 import (
-	"github.com/andres-lowrie/human/cmd"
+	"github.com/andres-lowrie/human/io"
 	"github.com/andres-lowrie/human/parsers"
 )
 
@@ -16,7 +16,7 @@ func (n *Number) GetParsers() []parsers.Parser {
 	return []parsers.Parser{parsers.NewNumberGroup(), parsers.NewNumberWord()}
 }
 
-func (n *Number) Run(direction string, input string, args cmd.CliArgs) (string, error) {
+func (n *Number) Run(direction string, input string, args io.CliArgs) (string, error) {
 	// Figure out which of the parsers we're using, default to "groupping, -g"
 	var p parsers.Parser
 

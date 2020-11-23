@@ -1,6 +1,7 @@
-package cmd
+package io
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -84,7 +85,19 @@ func ParseCliArgs(input []string) CliArgs {
 		if IsFlag(v) {
 			flags := strings.Split(strings.TrimLeft(v, "-"), "")
 			for _, v := range flags {
-				args.Flags[v] = true
+				// repeated flags get summed up and are available as options with their
+				// count instead of flags
+				if args.Flags[v] == true {
+					args.Options[v] = "2"
+					delete(args.Flags, v)
+				} else if len(args.Options[v]) > 0 {
+					n, _ := strconv.Atoi(args.Options[v])
+					n++
+					args.Options[v] = strconv.Itoa(n)
+				} else {
+					args.Flags[v] = true
+				}
+
 			}
 		}
 	}
