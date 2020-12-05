@@ -61,7 +61,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 		for _, c := range handlers {
 			output, _ = c.Run(direction, input, args)
 			if output != "" {
-				log.Info("output is set to: ", output)
+				fmt.Println(output)
 			}
 		}
 		return
@@ -75,7 +75,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 
 	output, _ = c.Run(direction, input, args)
 	if output != "" {
-		fmt.Println("output is set to: ", output)
+		fmt.Println(output)
 	}
 
 }
@@ -102,3 +102,5 @@ func main() {
 
 	run(log, args)
 }
+
+// ignore this
