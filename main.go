@@ -102,5 +102,3 @@ func main() {
 
 	run(log, args)
 }
-
-// ignore this
