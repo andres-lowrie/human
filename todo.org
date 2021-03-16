@@ -1,0 +1,11 @@
+* Refactors
+** create a function for parsing each of the time fields
+  this way the logic will be easier to follow
+** break out range function logic since it's duplicated
+* Working
+** rename CanParseFromMachine into getParts or something
+  since it's going to be used multiple times
+  ie, name this function something else and then wrap it with CanParseFromMachine
+** left off
+line 334 of cron.go
+output the human message

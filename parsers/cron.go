@@ -331,6 +331,21 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 		}
 	}
 
+	// Format make look like:
+	//
+	// if any value is set to*
+	// 		then the output value should be "every $value"
+	// if both month and dom are set to *:
+	// 		then month and dom become "daily"
+	// else:
+	// 		for month:
+	// 			{month} {dom}
+	//
+	// if day of week is not present:
+	// 		[{month}] [{day}] at {hour minute}
+	// else:
+	// 		[{month}] [{day}] at {hour minute} and {dow}
+
 	fmt.Println("OUTPUT")
 	fmt.Println("for input")
 	fmt.Println(input)
