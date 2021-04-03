@@ -138,6 +138,10 @@ type outputShape struct {
 	dow    string
 }
 
+type parsedOutput struct {
+	minute string
+}
+
 type Cron struct {
 	monthNames  [12]string
 	dowNames    [7]string
@@ -175,11 +179,7 @@ func NewCron() *Cron {
 	}
 }
 
-func (c *Cron) CanParseIntoMachine(input string) (bool, error) {
-	return false, ErrNotYetImplemented
-}
-
-// CanParseFromMachine determines if input will work for us.
+// parseInputOrError determines if input will work for us.
 //
 // Need to be:
 // - 5 fields
@@ -194,11 +194,13 @@ func (c *Cron) CanParseIntoMachine(input string) (bool, error) {
 //    month         1-12 (or names, see below)
 //    day of week   0-7  (0 or 7 is Sun, or use names)
 //    ```
-func (c *Cron) CanParseFromMachine(input string) (bool, error) {
+func (c *Cron) parseInputOrError(input string) ([]int64, error) {
+	var rtn []int64
+
 	// all five fields must be present.
 	rawParts := strings.Split(input, " ")
 	if len(rawParts) != 5 {
-		return false, ErrUnparsable
+		return rtn, ErrUnparsable
 	}
 
 	// All fields allow for numbers, letters, the hyphen, asterisk,
@@ -213,7 +215,7 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 	r := regexp.MustCompile(`(?i)^[0-9a-z\*/]{1}[0-9,\-*a-z/]*$`)
 	for _, v := range rawParts {
 		if !r.MatchString(v) {
-			return false, ErrUnparsable
+			return rtn, ErrUnparsable
 		}
 	}
 
@@ -227,7 +229,7 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 	// Check fields that don't allow letters
 	for _, f := range []string{rawMinute, rawHour, rawDom} {
 		if notok, _ := regexp.MatchString(`(?i)[a-z]`, f); notok {
-			return false, ErrUnparsable
+			return rtn, ErrUnparsable
 		}
 	}
 
@@ -260,17 +262,17 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 	// list and parse it into a slice so we can work with numbers instead
 	minutes, err := getSliceOfNumbers(rawMinute, "0-59")
 	if err != nil {
-		return false, err
+		return rtn, err
 	}
 
 	hours, err := getSliceOfNumbers(rawHour, "0-23")
 	if err != nil {
-		return false, err
+		return rtn, err
 	}
 
 	dom, err := getSliceOfNumbers(rawDom, "1-31")
 	if err != nil {
-		return false, err
+		return rtn, err
 	}
 
 	// Since these fields allow abbreviations we need to also check for that
@@ -290,7 +292,7 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 		return m, e
 	}()
 	if err != nil {
-		return false, err
+		return rtn, err
 	}
 
 	dow, err := func() ([]int64, error) {
@@ -309,40 +311,47 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 		return d, e
 	}()
 	if err != nil {
-		return false, err
+		return rtn, err
 	}
 
 	// Okay so now we can validate the actual values we parsed
 	for _, m := range minutes {
 		if invalidMinute(m) {
-			return false, ErrBadMinuteField
+			return rtn, ErrBadMinuteField
 		}
 	}
 
 	for _, h := range hours {
 		if invalidHour(h) {
-			return false, ErrBadHourField
+			return rtn, ErrBadHourField
 		}
 	}
 
 	for _, d := range dom {
 		if invalidDom(d) {
-			return false, ErrBadDomField
+			return rtn, ErrBadDomField
 		}
 	}
 
 	for _, m := range month {
 		if invalidMonth(m) {
-			return false, ErrBadMonthField
+			return rtn, ErrBadMonthField
 		}
 	}
 
 	for _, w := range dow {
 		if invalidDow(w) {
-			return false, ErrBadDowField
+			return rtn, ErrBadDowField
 		}
 	}
 
+	return rtn, nil
+}
+
+func (c *Cron) CanParseFromMachine(input string) (bool, error) {
+	if _, err := c.parseInputOrError(input); err != nil {
+		return false, err
+	}
 	return true, nil
 }
 
