@@ -68,17 +68,16 @@ func TestCronCanParseFromMachine(t *testing.T) {
 		{"* * * abc *", false, ErrUnparsable},
 		{"* * * * abc", false, ErrUnparsable},
 		// Positive
-		{"* * * aug *", false, ErrNotYetImplemented},
-		{"* * * * mon", false, ErrNotYetImplemented},
-		// {"* 3-23/100 * * *", false, ErrBadRangeStep},
-		// {"* 3-23/3 * * *", false, ErrBadRangeStep},
-		// {"*/2 * * * *", false, errors.New("foobar")},
-		// simple list {"1,2,3,4,5 * * * *", false, ErrBadRange},
-		// simele range {"1-59 * * * *", false, ErrBadMinuteField},
-		// These allow zero values
-		// {"* * * * */0", false, ErrBadRangeStep},
-		// {"*/0 * * * *", false, ErrBadRangeStep},
-		// {"* */0 * * *", false, ErrBadRangeStep},
+		{"* * * * *", true, nil},
+		{"* * * aug *", true, nil},
+		{"* * * * mon", true, nil},
+		{"* * * * 0", true, nil},
+		{"0 * * * *", true, nil},
+		{"* 0 * * *", true, nil},
+		{"* 3-23/100 * * *", true, nil},
+		{"* 3-23/3 * * *", true, nil},
+		{"1,2,3,4,5 * * * *", true, nil},
+		{"1-59 * * * *", true, nil},
 	}
 
 	for i, tt := range tests {

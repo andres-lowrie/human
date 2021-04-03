@@ -2,12 +2,9 @@ package parsers
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 var ErrBadRange error = errors.New("Ranges can only contain 2 numbers a start and and end. One of the ranges received was incorrectly formated")
@@ -100,9 +97,12 @@ func getSliceOfNumbers(s string, startStop string) ([]int64, error) {
 	}
 
 	// At this point `s` should be a number string so we should be able to parse it
-	if n, err := strconv.ParseInt(s, 10, 64); err != nil {
-		return emptyRtn, err
-	} else {
+	{
+		n, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return emptyRtn, err
+		}
+
 		rtn = append(rtn, n)
 	}
 
@@ -130,9 +130,18 @@ func invalidDow(a int64) bool {
 	return a < 0 || a > 7
 }
 
+type outputShape struct {
+	minute string
+	hour   string
+	dom    string
+	month  string
+	dow    string
+}
+
 type Cron struct {
-	monthNames [12]string
-	dowNames   [7]string
+	monthNames  [12]string
+	dowNames    [7]string
+	outputShape outputShape
 }
 
 func NewCron() *Cron {
@@ -160,6 +169,9 @@ func NewCron() *Cron {
 			"sat",
 			"sun",
 		},
+		// Default to all "asterisks" since my gut tells me that 80% of the time
+		// most input will be asterisks. No data to backup this up, it's all feels
+		outputShape{"every", "every", "every", "every", "every"},
 	}
 }
 
@@ -167,7 +179,7 @@ func (c *Cron) CanParseIntoMachine(input string) (bool, error) {
 	return false, ErrNotYetImplemented
 }
 
-// CanParseIntoMachine determines if input will work for us.
+// CanParseFromMachine determines if input will work for us.
 //
 // Need to be:
 // - 5 fields
@@ -184,8 +196,8 @@ func (c *Cron) CanParseIntoMachine(input string) (bool, error) {
 //    ```
 func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 	// all five fields must be present.
-	parts := strings.Split(input, " ")
-	if len(parts) != 5 {
+	rawParts := strings.Split(input, " ")
+	if len(rawParts) != 5 {
 		return false, ErrUnparsable
 	}
 
@@ -199,18 +211,18 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 	// We'll check each field individually later on to keep the regex
 	// quickly understandable
 	r := regexp.MustCompile(`(?i)^[0-9a-z\*/]{1}[0-9,\-*a-z/]*$`)
-	for _, v := range parts {
+	for _, v := range rawParts {
 		if !r.MatchString(v) {
 			return false, ErrUnparsable
 		}
 	}
 
-	// minute, hour, dom, month, dow = parts
-	rawMinute := parts[0]
-	rawHour := parts[1]
-	rawDom := parts[2]
-	rawMonth := parts[3]
-	rawDow := parts[4]
+	// minute, hour, dom, month, dow = rawParts
+	rawMinute := rawParts[0]
+	rawHour := rawParts[1]
+	rawDom := rawParts[2]
+	rawMonth := rawParts[3]
+	rawDow := rawParts[4]
 
 	// Check fields that don't allow letters
 	for _, f := range []string{rawMinute, rawHour, rawDom} {
@@ -331,37 +343,7 @@ func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 		}
 	}
 
-	// Format make look like:
-	//
-	// if any value is set to*
-	// 		then the output value should be "every $value"
-	// if both month and dom are set to *:
-	// 		then month and dom become "daily"
-	// else:
-	// 		for month:
-	// 			{month} {dom}
-	//
-	// if day of week is not present:
-	// 		[{month}] [{day}] at {hour minute}
-	// else:
-	// 		[{month}] [{day}] at {hour minute} and {dow}
-
-	fmt.Println("OUTPUT")
-	fmt.Println("for input")
-	fmt.Println(input)
-	fmt.Println("minutes")
-	spew.Dump(minutes)
-	fmt.Println("hours")
-	spew.Dump(hours)
-	fmt.Println("dom")
-	spew.Dump(dom)
-	fmt.Println("month")
-	spew.Dump(month)
-	fmt.Println("dow")
-	spew.Dump(dow)
-	fmt.Println("=================")
-
-	return false, ErrNotYetImplemented
+	return true, nil
 }
 
 func (c *Cron) DoIntoMachine(string) (string, error) {
@@ -369,5 +351,46 @@ func (c *Cron) DoIntoMachine(string) (string, error) {
 }
 
 func (c *Cron) DoFromMachine(string) (string, error) {
+	//// Format make look like:
+	////
+	//// if any value is set to*
+	//// 		then the output value should be "every $value"
+	//allStars := func() bool {
+	//	for _, r := range rawParts {
+	//		if r != "*" {
+	//			return false
+	//		}
+	//	}
+	//	return true
+	//}()
+	//if allStars == true {
+	//	return true, nil
+	//}
+
+	//// if both month and dom are set to *:
+	//// 		then month and dom become "daily"
+	//// else:
+	//// 		for month:
+	//// 			{month} {dom}
+	////
+	//// if day of week is not present:
+	//// 		[{month}] [{day}] at {hour minute}
+	//// else:
+	//// 		[{month}] [{day}] at {hour minute} and {dow}
+
+	//// fmt.Println("OUTPUT")
+	//// fmt.Println("for input")
+	//// fmt.Println(input)
+	//// fmt.Println("minutes")
+	//// spew.Dump(minutes)
+	//// fmt.Println("hours")
+	//// spew.Dump(hours)
+	//// fmt.Println("dom")
+	//// spew.Dump(dom)
+	//// fmt.Println("month")
+	//// spew.Dump(month)
+	//// fmt.Println("dow")
+	//// spew.Dump(dow)
+	//// fmt.Println("=================")
 	return ErrNotYetImplemented.Error(), nil
 }
