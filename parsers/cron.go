@@ -1,13 +1,12 @@
 package parsers
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
+	"text/template"
 )
 
 var ErrBadRange error = errors.New("Ranges can only contain 2 numbers a start and and end. One of the ranges received was incorrectly formated")
@@ -133,6 +132,72 @@ func invalidDow(a int64) bool {
 	return a < 0 || a > 7
 }
 
+func addOrdinalSuffix(input string) string {
+	switch input[len(input)-1] {
+	case '1':
+		return input + "st"
+	case '2':
+		return input + "nd"
+	case '3':
+		return input + "rd"
+	default:
+		return input + "th"
+	}
+}
+
+func parseTemplate(tpl string, opts interface{}) string {
+	var buf bytes.Buffer
+	tplActual := template.Must(template.New("t").Parse(tpl))
+	tplActual.Execute(&buf, opts)
+	return buf.String()
+}
+
+func outputHumanStep(timeComponent string, parsed []int64) string {
+	var start int
+
+	// Get the step by looking at the final number of steps
+	switch timeComponent {
+	default:
+		start = 60 / len(parsed)
+	}
+
+	var buf bytes.Buffer
+	tpl := template.Must(template.New("t").Parse("every {{.Start}}th {{.Tc}}"))
+	tpl.Execute(&buf, struct {
+		Tc    string
+		Start int
+	}{
+		timeComponent,
+		start,
+	})
+	return buf.String()
+}
+
+func outputHumanList(timeComponent string, parsed []int64) string {
+
+	var strParsed []string
+	for _, i := range parsed {
+		strParsed = append(strParsed, strconv.Itoa(int(i)))
+	}
+
+	var actual []string
+	last := strParsed[len(strParsed)-1]
+	actual = append(actual, strParsed[0:len(strParsed)-1]...)
+	actual = append(actual, "and", last)
+	str := strings.Join(actual, ", ")
+
+	var buf bytes.Buffer
+	tpl := template.Must(template.New("t").Parse("At {{.Tc}} {{.List}}"))
+	tpl.Execute(&buf, struct {
+		Tc   string
+		List string
+	}{
+		timeComponent,
+		str,
+	})
+	return buf.String()
+}
+
 type parsedOutput struct {
 	minutes []int64
 	hours   []int64
@@ -151,9 +216,19 @@ type outputShape struct {
 	dow     string
 }
 
+type rawParts struct {
+	minutes string
+	hours   string
+	dom     string
+	month   string
+	dow     string
+}
+
 type Cron struct {
 	monthNames [12]string
-	dowNames   [7]string
+	dowNames   [8]string
+	joiners    map[string]string
+	rawParts
 }
 
 func NewCron() *Cron {
@@ -172,7 +247,8 @@ func NewCron() *Cron {
 			"nov",
 			"dec",
 		},
-		[7]string{
+		[8]string{
+			"sun",
 			"mon",
 			"tue",
 			"wed",
@@ -181,6 +257,13 @@ func NewCron() *Cron {
 			"sat",
 			"sun",
 		},
+		map[string]string{
+			"hours": "of",
+			"dom":   "on the",
+			"month": "of",
+			"dow":   "on",
+		},
+		rawParts{},
 	}
 }
 
@@ -216,6 +299,11 @@ func (c *Cron) parseInputOrError(input string) (parsedOutput, error) {
 	rawDom := rawParts[2]
 	rawMonth := rawParts[3]
 	rawDow := rawParts[4]
+	c.rawParts.minutes = rawMinute
+	c.rawParts.hours = rawHour
+	c.rawParts.dom = rawDom
+	c.rawParts.month = rawMonth
+	c.rawParts.dow = rawDow
 
 	// Check fields that don't allow letters
 	for _, f := range []string{rawMinute, rawHour, rawDom} {
@@ -386,40 +474,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	everyMonth := len(parsed.month) == 12
 	everyDow := len(parsed.dow) == 8
 
-	// Logic for human formatting looks like:
-	//
-	// Each "component" is joined with the joiner token "of" since this has the
-	// most flexibility from an english standpoint
-	joinerToken := "of"
-
-	// The actual english values for each component can be mapped to the their
-	// numeric counterpart with the following exceptions:
-	//
-	// if any value is set to *
-	//   then the output value should be "every $value"
-
-	if everyMinute {
-		output.minutes = "every minute"
-	}
-
-	if everyHour {
-		output.hours = "every hour"
-	}
-
-	if everyDom {
-		output.dom = "every day"
-	}
-
-	if everyMonth {
-		output.month = "every month"
-	}
-
-	if everyDow {
-		output.dow = "every day of the week"
-	}
-
-	// If every component is set to "every", then we can reduce the noise in the
-	// output by allow the reader to infer the other time components
+	// Early exit if all stars
 	if func() bool {
 		for _, c := range []bool{everyMinute, everyHour, everyDom, everyMonth, everyDow} {
 			if c == false {
@@ -428,9 +483,148 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		}
 		return true
 	}() {
-		// fmt.Println("OUTPUT:", "every minute")
 		return "every minute", nil
 	}
+
+	if everyMinute {
+		output.minutes = ""
+	}
+
+	if everyHour {
+		output.hours = ""
+	}
+
+	if everyDom {
+		output.dom = ""
+	}
+
+	if everyMonth {
+		output.month = ""
+	}
+
+	if everyDow {
+		output.dow = ""
+	}
+
+	// Logic for human formatting looks like:
+	//
+	// Each "component" is joined with the joiner token "of" since this has the
+	// most flexibility from an english standpoint
+	//
+	// The actual english values for each component can be mapped to the their
+	// numeric counterpart. For ranges, steps, and lists we'll massage the text
+	// further to allow for a clearer description
+	if strings.Contains(c.rawParts.minutes, "-") {
+		tpl := `On minutes {{.Start}} through {{.Stop}}{{if .WithHours}} past the hours{{end}}`
+		output.minutes = parseTemplate(tpl, struct {
+			Start     int64
+			Stop      int64
+			WithHours bool
+		}{
+			parsed.minutes[0],
+			parsed.minutes[len(parsed.minutes)-1],
+			!everyHour,
+		})
+	}
+
+	if strings.Contains(c.rawParts.hours, "-") {
+		tpl := `{{.Start}} through {{.Stop}}`
+		output.hours = parseTemplate(tpl, struct {
+			Start int64
+			Stop  int64
+		}{
+			parsed.hours[0],
+			parsed.hours[len(parsed.hours)-1],
+		})
+	}
+
+	if strings.Contains(c.rawParts.dom, "-") {
+		tpl := `{{.Start}} through the {{.Stop}}`
+		output.dom = parseTemplate(tpl, struct {
+			Start string
+			Stop  string
+		}{
+			addOrdinalSuffix(strconv.Itoa(int(parsed.dom[0]))),
+			addOrdinalSuffix(strconv.Itoa(int(parsed.dom[len(parsed.dom)-1]))),
+		})
+	}
+
+	if strings.Contains(c.rawParts.month, "-") {
+		tpl := `{{.Start}} through {{.Stop}}`
+		output.month = parseTemplate(tpl, struct {
+			Start string
+			Stop  string
+		}{
+			strings.Title(c.monthNames[parsed.month[0]-1]),
+			strings.Title(c.monthNames[parsed.month[len(parsed.month)-1]-1]),
+		})
+	}
+
+	// spew.Dump(c)
+	// spew.Dump(parsed)
+	if strings.Contains(c.rawParts.dow, "-") {
+		tpl := `{{.Start}} through {{.Stop}}`
+		output.dow = parseTemplate(tpl, struct {
+			Start string
+			Stop  string
+		}{
+			strings.Title(c.dowNames[parsed.dow[0]]),
+			strings.Title(c.dowNames[parsed.dow[len(parsed.dow)-1]]),
+		})
+
+		// If both dom and dow are set, then this (dow) should take precedence. In
+		// either case we need to modify that the dom value
+		if len(output.dom) != 0 {
+			output.dom = output.dom + " and on " + output.dow
+			output.dow = ""
+		} else {
+			output.dom = output.dow
+			output.dow = ""
+			c.joiners["dom"] = "on"
+		}
+
+	}
+
+	// Handle steps
+	// spew.Dump(parsed)
+	if strings.Contains(c.rawParts.minutes, "/") {
+		tpl := `Every {{.Start}} minute`
+		output.minutes = parseTemplate(tpl, struct {
+			Start string
+		}{
+			addOrdinalSuffix(strconv.Itoa(int(parsed.minutes[1]))), // @TODO this is a hack, probably need to re-think why I'm turning into input into slices
+		})
+
+		// if len(output.hours) != 0 {
+		// 	c.joiners["hours"] = "of the hours"
+		// }
+
+	}
+
+	if strings.Contains(c.rawParts.hours, "/") {
+		tpl := `every {{.Start}} hour`
+		output.hours = parseTemplate(tpl, struct {
+			Start string
+		}{
+			addOrdinalSuffix(strconv.Itoa(int(parsed.hours[1]))),
+		})
+	}
+
+	// spew.Dump(c)
+
+	// if strings.Contains(c.rawParts.dom, "-") {
+	// 	output.dom = outputHumanRange("month", parsed.dom)
+	// }
+	// spew.Dump(parsed)
+
+	// if strings.Contains(c.rawParts.minutes, "/") {
+	// 	output.minutes = outputHumanStep("minute", parsed.minutes)
+	// }
+
+	// Lists change the "every" to "at" or "on" depending on the time component
+	// if strings.Contains(c.rawParts.minutes, ",") {
+	// 	output.minutes = outputHumanList("minute", parsed.minutes)
+	// }
 
 	// Once we've done all the finagling of the english words, we'll join them
 	// all together and skip over empty strings. I believe this will allow for
@@ -438,16 +632,24 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	// set "ie: work from left to right and skip specificity by using empty
 	// strings"
 	var rtn string
-	for _, c := range []string{output.minutes, output.hours, output.dom, output.month, output.dow} {
-		if len(c) == 0 {
+	components := []string{output.minutes, output.hours, output.dom, output.month, output.dow}
+	joiners := []string{"", "hours", "dom", "month", "dow"}
+
+	for i, tc := range components {
+		// We can reduce the noise in the output by allow the reader to infer the
+		// other time components
+		i++
+		if len(tc) == 0 {
 			continue
 		}
 
-		rtn += c + " " + joinerToken + " "
+		// Only add joiner if there's another component coming up
+		rtn += tc
+		if i < len(components) && len(components[i]) != 0 {
+			rtn += " " + c.joiners[joiners[i]] + " "
+		}
 	}
-
-	spew.Dump(output)
-	fmt.Println("RETURN", rtn)
+	return rtn, nil
 
 	// str := strings.Join([]string{
 	// 	output.minutes,
@@ -497,5 +699,5 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	//// fmt.Println("dow")
 	//// spew.Dump(dow)
 	//// fmt.Println("=================")
-	return ErrNotYetImplemented.Error(), nil
+	// return ErrNotYetImplemented.Error(), nil
 }
