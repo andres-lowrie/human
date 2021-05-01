@@ -93,3 +93,28 @@ func TestCronCanParseFromMachine(t *testing.T) {
 		})
 	}
 }
+
+func TestDoFromMachine(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+		err error
+	}{
+		// It should bubble up parsing errors
+		{"1 2 3", "", ErrUnparsable},
+		{"* * * * *", "every minute", nil},
+	}
+
+	for i, tt := range tests {
+		cronP := NewCron()
+		t.Run(fmt.Sprintf("Case %d: %v", i, tt.in), func(t *testing.T) {
+			got, err := cronP.DoFromMachine(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` ; want `%s` ; got `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` ; want `%t` ; got `%t`", i, tt.in, tt.err, err)
+			}
+		})
+	}
+}

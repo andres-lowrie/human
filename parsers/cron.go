@@ -2,9 +2,12 @@ package parsers
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 var ErrBadRange error = errors.New("Ranges can only contain 2 numbers a start and and end. One of the ranges received was incorrectly formated")
@@ -130,22 +133,27 @@ func invalidDow(a int64) bool {
 	return a < 0 || a > 7
 }
 
-type outputShape struct {
-	minute string
-	hour   string
-	dom    string
-	month  string
-	dow    string
+type parsedOutput struct {
+	minutes []int64
+	hours   []int64
+	dom     []int64
+	month   []int64
+	dow     []int64
 }
 
-type parsedOutput struct {
-	minute string
+// outputShape stores the components (english words) that are used to build the
+// human readable output
+type outputShape struct {
+	minutes string
+	hours   string
+	dom     string
+	month   string
+	dow     string
 }
 
 type Cron struct {
-	monthNames  [12]string
-	dowNames    [7]string
-	outputShape outputShape
+	monthNames [12]string
+	dowNames   [7]string
 }
 
 func NewCron() *Cron {
@@ -173,29 +181,12 @@ func NewCron() *Cron {
 			"sat",
 			"sun",
 		},
-		// Default to all "asterisks" since my gut tells me that 80% of the time
-		// most input will be asterisks. No data to backup this up, it's all feels
-		outputShape{"every", "every", "every", "every", "every"},
 	}
 }
 
-// parseInputOrError determines if input will work for us.
-//
-// Need to be:
-// - 5 fields
-// - fields are separated by a space
-//
-//    ```
-//    field         allowed values (all accept * as well)
-//    -----         --------------
-//    minute        0-59
-//    hour          0-23
-//    day of month  1-31
-//    month         1-12 (or names, see below)
-//    day of week   0-7  (0 or 7 is Sun, or use names)
-//    ```
-func (c *Cron) parseInputOrError(input string) ([]int64, error) {
-	var rtn []int64
+// parseInputOrError will return
+func (c *Cron) parseInputOrError(input string) (parsedOutput, error) {
+	var rtn parsedOutput
 
 	// all five fields must be present.
 	rawParts := strings.Split(input, " ")
@@ -345,9 +336,30 @@ func (c *Cron) parseInputOrError(input string) ([]int64, error) {
 		}
 	}
 
+	rtn.minutes = minutes
+	rtn.hours = hours
+	rtn.dom = dom
+	rtn.month = month
+	rtn.dow = dow
+
 	return rtn, nil
 }
 
+// CanParseFromMachine will determine if input will work for us.
+//
+// Need to be:
+// - 5 fields
+// - fields are separated by a space
+//
+//    ```
+//    field         allowed values (all accept * as well)
+//    -----         --------------
+//    minute        0-59
+//    hour          0-23
+//    day of month  1-31
+//    month         1-12 (or names, see below)
+//    day of week   0-7  (0 or 7 is Sun, or use names)
+//    ```
 func (c *Cron) CanParseFromMachine(input string) (bool, error) {
 	if _, err := c.parseInputOrError(input); err != nil {
 		return false, err
@@ -359,22 +371,91 @@ func (c *Cron) DoIntoMachine(string) (string, error) {
 	return ErrNotYetImplemented.Error(), nil
 }
 
-func (c *Cron) DoFromMachine(string) (string, error) {
-	//// Format make look like:
-	////
-	//// if any value is set to*
-	//// 		then the output value should be "every $value"
-	//allStars := func() bool {
-	//	for _, r := range rawParts {
-	//		if r != "*" {
-	//			return false
-	//		}
-	//	}
-	//	return true
-	//}()
-	//if allStars == true {
-	//	return true, nil
-	//}
+func (c *Cron) DoFromMachine(input string) (string, error) {
+	parsed, err := c.parseInputOrError(input)
+	if err != nil {
+		return "", err
+	}
+
+	output := outputShape{}
+
+	// Alias some facts
+	everyMinute := len(parsed.minutes) == 60
+	everyHour := len(parsed.hours) == 24
+	everyDom := len(parsed.dom) == 31
+	everyMonth := len(parsed.month) == 12
+	everyDow := len(parsed.dow) == 8
+
+	// Logic for human formatting looks like:
+	//
+	// Each "component" is joined with the joiner token "of" since this has the
+	// most flexibility from an english standpoint
+	joinerToken := "of"
+
+	// The actual english values for each component can be mapped to the their
+	// numeric counterpart with the following exceptions:
+	//
+	// if any value is set to *
+	//   then the output value should be "every $value"
+
+	if everyMinute {
+		output.minutes = "every minute"
+	}
+
+	if everyHour {
+		output.hours = "every hour"
+	}
+
+	if everyDom {
+		output.dom = "every day"
+	}
+
+	if everyMonth {
+		output.month = "every month"
+	}
+
+	if everyDow {
+		output.dow = "every day of the week"
+	}
+
+	// If every component is set to "every", then we can reduce the noise in the
+	// output by allow the reader to infer the other time components
+	if func() bool {
+		for _, c := range []bool{everyMinute, everyHour, everyDom, everyMonth, everyDow} {
+			if c != true {
+				return false
+			}
+		}
+		return true
+	}() {
+		fmt.Println("OUTPUT:", "every minute")
+		return "every minute", nil
+	}
+
+	// spew.Dump(parsed)
+	spew.Dump(output)
+	str := strings.Join([]string{
+		output.minutes,
+		output.hours,
+		output.dom,
+		output.month,
+		output.dow,
+	}, " "+joinerToken+" ",
+	)
+	fmt.Println("str", str)
+
+	// allStars := func() bool {
+	// 	for _, r := range rawParts {
+	// 		if r != "*" {
+	// 			return false
+	// 		}
+	// 	}
+	// 	return true
+	// }()
+	// if allStars == true {
+	// 	return true, nil
+	// }
+	// spew.Dump(allStars)
 
 	//// if both month and dom are set to *:
 	//// 		then month and dom become "daily"
