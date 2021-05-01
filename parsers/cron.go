@@ -422,27 +422,42 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	// output by allow the reader to infer the other time components
 	if func() bool {
 		for _, c := range []bool{everyMinute, everyHour, everyDom, everyMonth, everyDow} {
-			if c != true {
+			if c == false {
 				return false
 			}
 		}
 		return true
 	}() {
-		fmt.Println("OUTPUT:", "every minute")
+		// fmt.Println("OUTPUT:", "every minute")
 		return "every minute", nil
 	}
 
-	// spew.Dump(parsed)
+	// Once we've done all the finagling of the english words, we'll join them
+	// all together and skip over empty strings. I believe this will allow for
+	// easier modification of "common english expressions" and tie down the rule
+	// set "ie: work from left to right and skip specificity by using empty
+	// strings"
+	var rtn string
+	for _, c := range []string{output.minutes, output.hours, output.dom, output.month, output.dow} {
+		if len(c) == 0 {
+			continue
+		}
+
+		rtn += c + " " + joinerToken + " "
+	}
+
 	spew.Dump(output)
-	str := strings.Join([]string{
-		output.minutes,
-		output.hours,
-		output.dom,
-		output.month,
-		output.dow,
-	}, " "+joinerToken+" ",
-	)
-	fmt.Println("str", str)
+	fmt.Println("RETURN", rtn)
+
+	// str := strings.Join([]string{
+	// 	output.minutes,
+	// 	output.hours,
+	// 	output.dom,
+	// 	output.month,
+	// 	output.dow,
+	// }, " "+joinerToken+" ",
+	// )
+	// fmt.Println("str", str)
 
 	// allStars := func() bool {
 	// 	for _, r := range rawParts {
