@@ -103,16 +103,24 @@ func TestDoFromMachine(t *testing.T) {
 		// It should bubble up parsing errors
 		{"1 2 3", "", ErrUnparsable},
 		{"* * * * *", "every minute", nil},
+    // Time Component
 		// It should handle ranges
-		{"1-4 * * * *", "On minutes 1 through 4", nil},
-		{"1-4 3-4 * * *", "On minutes 1 through 4 past the hours of 3 through 4", nil},
-		{"1-4 3-4 5-21 * *", "On minutes 1 through 4 past the hours of 3 through 4 on the 5th through the 21st", nil},
-		{"4-45 3-4 5-21 6-10 *", "On minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st of Jun through Oct", nil},
-		{"4-45 3-4 5-21 6-10 4-7", "On minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st and on Thu through Sun of Jun through Oct", nil},
-		{"4-45 3-4 * 6-10 4-7", "On minutes 4 through 45 past the hours of 3 through 4 on Thu through Sun of Jun through Oct", nil},
-		// It should handle steps
-		{"*/18 * * * *", "Every 18th minute", nil},
-		{"*/18 */3 * * *", "Every 18th minute of every 3rd hour", nil},
+		{"1-4 * * * *", "on minutes 1 through 4", nil},
+		{"* 1-4 * * *", "every minute past the hours of 1 through 4", nil},
+		// It should handle lists
+    // @LEFT-OFF
+    //
+    //
+    //
+    //
+		// {"1-4 3-4 * * *", "On minutes 1 through 4 past the hours of 3 through 4", nil},
+		// {"1-4 3-4 5-21 * *", "On minutes 1 through 4 past the hours of 3 through 4 on the 5th through the 21st", nil},
+		// {"4-45 3-4 5-21 6-10 *", "On minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st of Jun through Oct", nil},
+		// {"4-45 3-4 5-21 6-10 4-7", "On minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st and on Thu through Sun of Jun through Oct", nil},
+		// {"4-45 3-4 * 6-10 4-7", "On minutes 4 through 45 past the hours of 3 through 4 on Thu through Sun of Jun through Oct", nil},
+		// // It should handle steps
+		// {"*/18 * * * *", "Every 18th minute", nil},
+		// {"*/18 */3 * * *", "Every 18th minute of every 3rd hour", nil},
 		// {"* 1-4 * * *", "every minute of every hour from 1 through 4", nil},
 		// // {"* * */3 * *", "every minute on the 3rd day of every month", nil},
 		// // It should handle steps
