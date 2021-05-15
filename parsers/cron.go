@@ -3,12 +3,11 @@ package parsers
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 var ErrBadRange error = errors.New("Ranges can only contain 2 numbers a start and and end. One of the ranges received was incorrectly formated")
@@ -219,6 +218,9 @@ type component struct {
 	start      int64
 	stop       int64
 	values     []int64
+	// override can be used when the start and stop values wouldn't make sense
+	// for output like in the case of using a list of values
+	override string
 }
 
 type parsedOutput struct {
@@ -499,8 +501,15 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		parsed.minutes[0],
 		parsed.minutes[len(parsed.minutes)-1],
 		parsed.minutes,
+		"",
 	}
-	minComp.isSingular = all([]bool{minComp.isRange, minComp.isStep, minComp.isList}, false)
+	minComp.isSingular = all(
+		[]bool{
+			minComp.isRange,
+			minComp.isStep,
+			minComp.isList,
+			c.rawParts.minutes == "*",
+		}, false)
 
 	hourComp := component{
 		len(parsed.hours) == 24,
@@ -512,8 +521,15 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		parsed.hours[0],
 		parsed.hours[len(parsed.hours)-1],
 		parsed.hours,
+		"",
 	}
-	hourComp.isSingular = all([]bool{hourComp.isRange, hourComp.isStep, hourComp.isList}, false)
+	hourComp.isSingular = all(
+		[]bool{
+			hourComp.isRange,
+			hourComp.isStep,
+			hourComp.isList,
+			c.rawParts.hours == "*",
+		}, false)
 
 	domComp := component{
 		len(parsed.dom) == 31,
@@ -525,8 +541,15 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		parsed.dom[0],
 		parsed.dom[len(parsed.dom)-1],
 		parsed.dom,
+		"",
 	}
-	domComp.isSingular = all([]bool{domComp.isRange, domComp.isStep, domComp.isList}, false)
+	domComp.isSingular = all(
+		[]bool{
+			domComp.isRange,
+			domComp.isStep,
+			domComp.isList,
+			c.rawParts.dom == "*",
+		}, false)
 
 	monthComp := component{
 		len(parsed.month) == 12,
@@ -538,8 +561,14 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		parsed.month[0],
 		parsed.month[len(parsed.month)-1],
 		parsed.month,
+		"",
 	}
-	monthComp.isSingular = all([]bool{monthComp.isRange, monthComp.isStep, monthComp.isList}, false)
+	monthComp.isSingular = all([]bool{
+		monthComp.isRange,
+		monthComp.isStep,
+		monthComp.isList,
+		c.rawParts.month == "*",
+	}, false)
 
 	dowComp := component{
 		len(parsed.dow) == 8,
@@ -551,14 +580,20 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		parsed.dow[0],
 		parsed.dow[len(parsed.dow)-1],
 		parsed.dow,
+		"",
 	}
-	dowComp.isSingular = all([]bool{dowComp.isRange, dowComp.isStep, dowComp.isList}, false)
+	dowComp.isSingular = all([]bool{
+		dowComp.isRange,
+		dowComp.isStep,
+		dowComp.isList,
+		c.rawParts.dow == "*",
+	}, false)
 
-	spew.Dump(minComp)
-	spew.Dump(hourComp)
-	spew.Dump(domComp)
-	spew.Dump(monthComp)
-	spew.Dump(dowComp)
+	// spew.Dump(minComp)
+	// spew.Dump(hourComp)
+	// spew.Dump(domComp)
+	// spew.Dump(monthComp)
+	// spew.Dump(dowComp)
 
 	// The 5 fields of a cron can be broken down into 3 sets of components:
 	//
@@ -603,6 +638,32 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			tcTpl = `on minutes {{.MinStart}} through {{.MinStop}} `
 		}
 
+		if minComp.isList {
+			ln := len(minComp.values) - 1
+			last := minComp.values[ln]
+
+			beforeLast := func(a []int64) string {
+				var temp []string
+				for _, i := range a {
+					temp = append(temp, strconv.Itoa(int(i)))
+				}
+				return strings.Join(temp, ",")
+			}(minComp.values[0:ln])
+
+			minComp.override = fmt.Sprintf("%s and %d", beforeLast, last)
+			tcTpl = `on minutes {{.MinOverride}} `
+		}
+
+		if minComp.isSingular {
+			tcTpl = `at minute {{.MinStart}} `
+		}
+
+		if minComp.isStep {
+			temp := strings.Split(c.rawParts.minutes, "/")
+			minComp.override = temp[len(temp)-1]
+			tcTpl = `every {{.MinOverride}} minutes `
+		}
+
 		if hourComp.all {
 			return strings.TrimRight(tcTpl, " ")
 		}
@@ -612,27 +673,51 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			return tcTpl
 		}
 
+		if hourComp.isStep {
+			temp := strings.Split(c.rawParts.hours, "/")
+			hourComp.override = temp[len(temp)-1]
+			tcTpl += `past every {{.HourOverride}} hours`
+			return tcTpl
+		}
+
 		if !hourComp.isSingular {
 			tcTpl += `past the hours of `
 
 			if hourComp.isList {
-				tcTpl += `{{.HourValues}}`
+				ln := len(hourComp.values) - 1
+				last := hourComp.values[ln]
+
+				beforeLast := func(a []int64) string {
+					var temp []string
+					for _, i := range a {
+						temp = append(temp, strconv.Itoa(int(i)))
+					}
+					return strings.Join(temp, ",")
+				}(hourComp.values[0:ln])
+
+				hourComp.override = fmt.Sprintf("%s and %d", beforeLast, last)
+				tcTpl += `{{.HourOverride}}`
 			} else {
 				tcTpl += `{{.HourStart}} through {{.HourStop}}`
 			}
+
 		}
 		return tcTpl
 	}()
 	tcRendered := parseTemplate(tcTpl, struct {
-		MinStart  int64
-		MinStop   int64
-		HourStart int64
-		HourStop  int64
+		MinStart     interface{}
+		MinStop      interface{}
+		MinOverride  interface{}
+		HourStart    interface{}
+		HourStop     interface{}
+		HourOverride interface{}
 	}{
 		minComp.start,
 		minComp.stop,
+		minComp.override,
 		hourComp.start,
 		hourComp.stop,
+		hourComp.override,
 	})
 
 	// Finalize

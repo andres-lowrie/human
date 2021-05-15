@@ -103,16 +103,23 @@ func TestDoFromMachine(t *testing.T) {
 		// It should bubble up parsing errors
 		{"1 2 3", "", ErrUnparsable},
 		{"* * * * *", "every minute", nil},
-    // Time Component
+		// Time Component
 		// It should handle ranges
 		{"1-4 * * * *", "on minutes 1 through 4", nil},
 		{"* 1-4 * * *", "every minute past the hours of 1 through 4", nil},
 		// It should handle lists
-    // @LEFT-OFF
-    //
-    //
-    //
-    //
+		{"1,2,5 * * * *", "on minutes 1,2 and 5", nil},
+		{"* 1,2,5 * * *", "every minute past the hours of 1,2 and 5", nil},
+		// It should handle singular values
+		{"1 * * * *", "at minute 1", nil},
+		{"* 2 * * *", "every minute past 2", nil},
+		// It should handle step values
+		{"*/2 * * * *", "every 2 minutes", nil},
+		{"* */6 * * *", "every minute past every 6 hours", nil},
+		//
+		//
+		//
+		//
 		// {"1-4 3-4 * * *", "On minutes 1 through 4 past the hours of 3 through 4", nil},
 		// {"1-4 3-4 5-21 * *", "On minutes 1 through 4 past the hours of 3 through 4 on the 5th through the 21st", nil},
 		// {"4-45 3-4 5-21 6-10 *", "On minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st of Jun through Oct", nil},
