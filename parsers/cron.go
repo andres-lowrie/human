@@ -273,14 +273,14 @@ func NewCron() *Cron {
 			"dec",
 		},
 		[8]string{
-			"sun",
-			"mon",
-			"tue",
-			"wed",
-			"thu",
-			"fri",
-			"sat",
-			"sun",
+			"sunday",
+			"monday",
+			"tueday",
+			"wednesday",
+			"thursday",
+			"friday",
+			"saturday",
+			"sunday",
 		},
 		map[string]string{
 			"hours": "of",
@@ -607,7 +607,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	// Specificity, when components are set to "all" we can ignore them in the
 	// output and let the human reader infer their values
 
-	// Quick Exit, if we have all starts then we'll just return the minutes portition
+	// Quick Exit, if we have all stars then we'll just return the minutes portition
 	if func() bool {
 		for _, c := range []bool{minComp.all, hourComp.all, domComp.all, monthComp.all, dowComp.all} {
 			if c == false {
@@ -620,11 +620,6 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	}
 
 	tpl := `{{.TimeComponent}}{{.DayComponent}}{{.MonthComponent}}`
-
-	// `{{starter}} {{value}} {{joiner}}`
-	// `on minutes range|list past`
-	// `isSin`
-	// `the hours of`
 
 	// Time Component
 	// --------------------------------------------------------------------------
@@ -720,6 +715,79 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		hourComp.override,
 	})
 
+	// Day Component
+	// --------------------------------------------------------------------------
+	dcTpl := func() string {
+		if domComp.all {
+			return ""
+		}
+
+		dcTpl := " on the "
+
+		if domComp.isRange {
+			start := addOrdinalSuffix(strconv.Itoa(int(domComp.start)))
+			stop := addOrdinalSuffix(strconv.Itoa(int(domComp.stop)))
+			domComp.override = fmt.Sprintf("%s through the %s", start, stop)
+			dcTpl += "{{.DayOverride}}"
+		}
+
+		if domComp.isList {
+			ln := len(domComp.values) - 1
+			last := domComp.values[ln]
+
+			beforeLast := func(a []int64) string {
+				var temp []string
+				for _, i := range a {
+					temp = append(temp, addOrdinalSuffix(strconv.Itoa(int(i))))
+				}
+				return strings.Join(temp, ", ")
+			}(domComp.values[0:ln])
+
+			domComp.override = fmt.Sprintf("%s and the %s", beforeLast, addOrdinalSuffix(strconv.Itoa(int(last))))
+			dcTpl += "{{.DayOverride}}"
+		}
+
+		if dowComp.isRange {
+			start := strings.Title(c.dowNames[dowComp.start])
+			stop := strings.Title(c.dowNames[dowComp.stop])
+			dowComp.override = fmt.Sprintf(" and on %s through %s", start, stop)
+			dcTpl += "{{.WeekDayOverride}}"
+		}
+
+		if dowComp.isList {
+			ln := len(dowComp.values) - 1
+			last := dowComp.values[ln]
+
+			beforeLast := func(a []int64) string {
+				var temp []string
+				for _, i := range a {
+					temp = append(temp, fmt.Sprintf("%ss", strings.Title(c.dowNames[i])))
+				}
+				return strings.Join(temp, ", ")
+			}(dowComp.values[0:ln])
+
+			dowComp.override = fmt.Sprintf(" and on %s, and %ss", beforeLast, strings.Title(c.dowNames[last]))
+			dcTpl += "{{.WeekDayOverride}}"
+		}
+
+		return dcTpl
+	}()
+	dcRendered := parseTemplate(dcTpl, struct {
+		DayStart        interface{}
+		DayStop         interface{}
+		DayOverride     interface{}
+		WeekDayStart    interface{}
+		WeekDayStop     interface{}
+		WeekDayOverride interface{}
+	}{
+		domComp.start,
+		domComp.stop,
+		domComp.override,
+		dowComp.start,
+		dowComp.stop,
+		dowComp.override,
+	})
+
 	// Finalize
 	rtn := parseTemplate(tpl, struct {
 		TimeComponent  string
@@ -727,7 +795,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		MonthComponent string
 	}{
 		tcRendered,
-		"",
+		dcRendered,
 		"",
 	})
 

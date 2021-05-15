@@ -116,6 +116,13 @@ func TestDoFromMachine(t *testing.T) {
 		// It should handle step values
 		{"*/2 * * * *", "every 2 minutes", nil},
 		{"* */6 * * *", "every minute past every 6 hours", nil},
+		// Day Component
+		// It should handle ranges
+		{"* * 1-25 * *", "every minute on the 1st through the 25th", nil},
+		{"* * 1-25 * 1-3", "every minute on the 1st through the 25th and on Monday through Wednesday", nil},
+		// It should handle list
+		{"* * 1,2,3,25 * *", "every minute on the 1st, 2nd, 3rd and the 25th", nil},
+		{"* * 1,2,3,25 * 1,5,7", "every minute on the 1st, 2nd, 3rd and the 25th and on Mondays, Fridays, and Sundays", nil},
 		//
 		//
 		//
