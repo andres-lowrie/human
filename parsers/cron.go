@@ -718,10 +718,11 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	// Day Component
 	// --------------------------------------------------------------------------
 	dcTpl := func() string {
-		if domComp.all {
+		if domComp.all && dowComp.all {
 			return ""
 		}
 
+		// @TODO need a condition here to only set "on the" if dom is not set to 'all'
 		dcTpl := " on the "
 
 		if domComp.isRange {
@@ -747,6 +748,11 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			dcTpl += "{{.DayOverride}}"
 		}
 
+		if domComp.isSingular {
+			domComp.override = addOrdinalSuffix(strconv.Itoa(int(domComp.start)))
+			dcTpl += "{{.DayOverride}}"
+		}
+
 		if dowComp.isRange {
 			start := strings.Title(c.dowNames[dowComp.start])
 			stop := strings.Title(c.dowNames[dowComp.stop])
@@ -767,6 +773,11 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			}(dowComp.values[0:ln])
 
 			dowComp.override = fmt.Sprintf(" and on %s, and %ss", beforeLast, strings.Title(c.dowNames[last]))
+			dcTpl += "{{.WeekDayOverride}}"
+		}
+
+		if dowComp.isSingular {
+			dowComp.override = fmt.Sprintf(" and on %ss", strings.Title(c.dowNames[dowComp.start]))
 			dcTpl += "{{.WeekDayOverride}}"
 		}
 
