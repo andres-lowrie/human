@@ -123,6 +123,10 @@ func TestDoFromMachine(t *testing.T) {
 		// It should handle list
 		{"* * 1,2,3,25 * *", "every minute on the 1st, 2nd, 3rd and the 25th", nil},
 		{"* * 1,2,3,25 * 1,5,7", "every minute on the 1st, 2nd, 3rd and the 25th and on Mondays, Fridays, and Sundays", nil},
+    // It should handle singular ranges
+		{"* * 31 * *", "every minute on the 31st", nil},
+    // @LEFT OFF: why doesn't this work?
+		{"* * 7 * 0", "every minute on the 7th and on Sundays", nil},
 		//
 		//
 		//
