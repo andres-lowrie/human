@@ -21,7 +21,7 @@
       0-6/2 => meaning, 0 to 6 by 2 (0, 2, 4, 6)
       can be used after asterisk ( */2 )
 **** names
-     cannot be used with ranges, ie: there's not such thing as "mon-wed"
+     cannot be used with ranges, ie: there's no such thing as "mon-wed"
      Can be used for "month" and "day of week". Use first 3 three letters of the
      field
        eg: jan => janurary, wed => wednesday

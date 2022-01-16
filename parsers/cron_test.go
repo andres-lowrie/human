@@ -94,16 +94,12 @@ func TestCronCanParseFromMachine(t *testing.T) {
 	}
 }
 
-func TestDoFromMachine(t *testing.T) {
+func TestDoFromMachineTimeComponent(t *testing.T) {
 	tests := []struct {
 		in  string
 		out string
 		err error
 	}{
-		// It should bubble up parsing errors
-		{"1 2 3", "", ErrUnparsable},
-		{"* * * * *", "every minute", nil},
-		// Time Component
 		// It should handle ranges
 		{"1-4 * * * *", "on minutes 1 through 4", nil},
 		{"* 1-4 * * *", "every minute past the hours of 1 through 4", nil},
@@ -116,20 +112,63 @@ func TestDoFromMachine(t *testing.T) {
 		// It should handle step values
 		{"*/2 * * * *", "every 2 minutes", nil},
 		{"* */6 * * *", "every minute past every 6 hours", nil},
-		// Day Component
+	}
+	for i, tt := range tests {
+		cronP := NewCron()
+		t.Run(fmt.Sprintf("Case %d: %v", i, tt.in), func(t *testing.T) {
+			got, err := cronP.DoFromMachine(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` \n; want `%s` \n; got  `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` \n; want `%t` \n; got  `%t`", i, tt.in, tt.err, err)
+			}
+		})
+	}
+}
+
+func TestDoFromMachineDayComponent(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+		err error
+	}{
 		// It should handle ranges
 		{"* * 1-25 * *", "every minute on the 1st through the 25th", nil},
 		{"* * 1-25 * 1-3", "every minute on the 1st through the 25th and on Monday through Wednesday", nil},
 		// It should handle list
 		{"* * 1,2,3,25 * *", "every minute on the 1st, 2nd, 3rd and the 25th", nil},
 		{"* * 1,2,3,25 * 1,5,7", "every minute on the 1st, 2nd, 3rd and the 25th and on Mondays, Fridays, and Sundays", nil},
-    // It should handle singular ranges
+		// It should handle singular values
 		{"* * 31 * *", "every minute on the 31st", nil},
-    // @LEFT OFF: why doesn't this work?
 		{"* * 7 * 0", "every minute on the 7th and on Sundays", nil},
-		//
-		//
-		//
+		// It should handle step values
+		{"* * */2 * *", "every minute on every 2nd day of the month", nil},
+	}
+	for i, tt := range tests {
+		cronP := NewCron()
+		t.Run(fmt.Sprintf("Case %d: %v", i, tt.in), func(t *testing.T) {
+			got, err := cronP.DoFromMachine(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` \n; want `%s` \n; got  `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` \n; want `%t` \n; got  `%t`", i, tt.in, tt.err, err)
+			}
+		})
+	}
+}
+
+func TestDoFromMachine(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+		err error
+	}{
+		// It should bubble up parsing errors
+		{"1 2 3", "", ErrUnparsable},
+    // It should handle all stars (early exit)
+		{"* * * * *", "every minute", nil},
 		//
 		// {"1-4 3-4 * * *", "On minutes 1 through 4 past the hours of 3 through 4", nil},
 		// {"1-4 3-4 5-21 * *", "On minutes 1 through 4 past the hours of 3 through 4 on the 5th through the 21st", nil},

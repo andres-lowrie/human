@@ -490,7 +490,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		return "", err
 	}
 
-	// parse into components
+	// Parse into components
 	minComp := component{
 		len(parsed.minutes) == 60,
 		strings.Contains(c.rawParts.minutes, "-"),
@@ -597,9 +597,9 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 
 	// The 5 fields of a cron can be broken down into 3 sets of components:
 	//
-	//  Time Components  , which is minutes and hours
-	//  Day Components   , which is day-of-month and day-of-week
-	//  Month Component  , the month
+	//  Time Component  , which is minutes and hours
+	//  Day Component   , which is day-of-month and day-of-week
+	//  Month Component , the month
 	//
 	// We'll process the parsed components in that order (Time, Day, Month) and
 	// build the string from left to right in terms of said order.
@@ -625,6 +625,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	// --------------------------------------------------------------------------
 	tcTpl := func() string {
 		var tcTpl string
+    // minute
 		if minComp.all {
 			tcTpl += "every minute "
 		}
@@ -659,6 +660,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			tcTpl = `every {{.MinOverride}} minutes `
 		}
 
+    // hour
 		if hourComp.all {
 			return strings.TrimRight(tcTpl, " ")
 		}
@@ -722,8 +724,10 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			return ""
 		}
 
-		// @TODO need a condition here to only set "on the" if dom is not set to 'all'
 		dcTpl := " on the "
+		if domComp.isStep {
+			dcTpl = " on every "
+		}
 
 		if domComp.isRange {
 			start := addOrdinalSuffix(strconv.Itoa(int(domComp.start)))
@@ -753,6 +757,14 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			dcTpl += "{{.DayOverride}}"
 		}
 
+		if domComp.isStep {
+      temp :=strings.Split(c.rawParts.dom, "/")
+      domComp.override = addOrdinalSuffix(temp[len(temp)-1])
+      dcTpl += "{{.DayOverride}} day of the month"
+		}
+
+
+    // dow
 		if dowComp.isRange {
 			start := strings.Title(c.dowNames[dowComp.start])
 			stop := strings.Title(c.dowNames[dowComp.stop])
@@ -809,6 +821,8 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		dcRendered,
 		"",
 	})
+
+	// spew.Dump(rtn)
 
 	return rtn, nil
 

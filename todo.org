@@ -2,10 +2,11 @@
 ** create a function for parsing each of the time fields
   this way the logic will be easier to follow
 ** break out range function logic since it's duplicated
-* Working
-** rename CanParseFromMachine into getParts or something
+** rename CanParseFromMachine into getParts or something in the format package
   since it's going to be used multiple times
   ie, name this function something else and then wrap it with CanParseFromMachine
-** left off
-line 334 of cron.go
-output the human message
+see format/number.go.Run for info
+** cron: output should be controlled via types and not string manipulation
+* Working
+DoFromMachine cron DayComponent: adding back the previous tests I commented out
+need to put the current code into some "known working" state so I can go back and organize the code better
