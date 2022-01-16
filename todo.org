@@ -8,5 +8,7 @@
 see format/number.go.Run for info
 ** cron: output should be controlled via types and not string manipulation
 * Working
-DoFromMachine cron DayComponent: adding back the previous tests I commented out
-need to put the current code into some "known working" state so I can go back and organize the code better
+** finish cron
+*** continue adding back tests that are commented out
+*** add some sort of "e2e" testing the entire cli
+** get e2e working on the 3 parsers
