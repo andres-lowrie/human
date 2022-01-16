@@ -625,7 +625,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	// --------------------------------------------------------------------------
 	tcTpl := func() string {
 		var tcTpl string
-    // minute
+		// minute
 		if minComp.all {
 			tcTpl += "every minute "
 		}
@@ -660,7 +660,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			tcTpl = `every {{.MinOverride}} minutes `
 		}
 
-    // hour
+		// hour
 		if hourComp.all {
 			return strings.TrimRight(tcTpl, " ")
 		}
@@ -726,7 +726,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 
 		dcTpl := " on the "
 		if domComp.isStep {
-			dcTpl = " on every "
+			dcTpl = " every "
 		}
 
 		if domComp.isRange {
@@ -758,13 +758,12 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		}
 
 		if domComp.isStep {
-      temp :=strings.Split(c.rawParts.dom, "/")
-      domComp.override = addOrdinalSuffix(temp[len(temp)-1])
-      dcTpl += "{{.DayOverride}} day of the month"
+			temp := strings.Split(c.rawParts.dom, "/")
+			domComp.override = temp[len(temp)-1]
+			dcTpl += "{{.DayOverride}} days"
 		}
 
-
-    // dow
+		// dow
 		if dowComp.isRange {
 			start := strings.Title(c.dowNames[dowComp.start])
 			stop := strings.Title(c.dowNames[dowComp.stop])
@@ -790,6 +789,12 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 
 		if dowComp.isSingular {
 			dowComp.override = fmt.Sprintf(" and on %ss", strings.Title(c.dowNames[dowComp.start]))
+			dcTpl += "{{.WeekDayOverride}}"
+		}
+
+		if dowComp.isStep {
+			temp := strings.Split(c.rawParts.dom, "/")
+			dowComp.override = fmt.Sprintf(" and on every %s days of the week", temp[len(temp)-1])
 			dcTpl += "{{.WeekDayOverride}}"
 		}
 

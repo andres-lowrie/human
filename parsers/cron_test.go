@@ -143,7 +143,9 @@ func TestDoFromMachineDayComponent(t *testing.T) {
 		{"* * 31 * *", "every minute on the 31st", nil},
 		{"* * 7 * 0", "every minute on the 7th and on Sundays", nil},
 		// It should handle step values
-		{"* * */2 * *", "every minute on every 2nd day of the month", nil},
+		{"* * */2 * *", "every minute every 2 days", nil},
+		{"* * */3 * 6", "every minute every 3 days and on Saturdays", nil},
+		{"* * */3 * */3", "every minute every 3 days and on every 3 days of the week", nil},
 	}
 	for i, tt := range tests {
 		cronP := NewCron()
