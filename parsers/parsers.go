@@ -17,6 +17,7 @@ type Parser interface {
 var ErrNotANumber error = errors.New("Not a Number")
 var ErrTooLarge error = errors.New("Too Beaucoup")
 var ErrTooSmall error = errors.New("Number too small")
+var ErrNotYetImplemented error = errors.New("Not Yet Implemented")
 
 // Catch all error
 var ErrUnparsable error = errors.New("Unparsable")
