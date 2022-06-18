@@ -1,14 +1,18 @@
 * Refactors
-** create a function for parsing each of the time fields
-  this way the logic will be easier to follow
+** create a function for parsing each of the time fields (TimeComponent, DayComponent, MonthComponent)
+this way the logic will be easier to follow
+currently these are the anonymous functions that have the suffix `Tpl` in DoFromMachine function
 ** break out range function logic since it's duplicated
 ** rename CanParseFromMachine into getParts or something in the format package
   since it's going to be used multiple times
   ie, name this function something else and then wrap it with CanParseFromMachine
 see format/number.go.Run for info
 ** cron: output should be controlled via types and not string manipulation
+ie: the string manipulation should be abstracted until the last moment?
 * Working
-** finish cron
-*** continue adding back tests that are commented out
-*** add some sort of "e2e" testing the entire cli
-** get e2e working on the 3 parsers
+** TODO finish cron [66%]
+- [X] continue adding back tests that are commented out
+- [ ] add some sort of "e2e" testing for the entire cli
+  this will help iron our the ux and get some sort of v0 out
+- [X] write MonthComponent tests
+** TODO get e2e working on the 3 parsers

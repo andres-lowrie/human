@@ -155,58 +155,16 @@ func addOrdinalSuffix(input string) string {
 	}
 }
 
+func getPrettyMonthName(c *Cron, natMonthVal int64) string {
+	return c.monthNames[natMonthVal-1]
+}
+
 func parseTemplate(tpl string, opts interface{}) string {
 	var buf bytes.Buffer
 	tplActual := template.Must(template.New("t").Parse(tpl))
 	tplActual.Execute(&buf, opts)
 	return buf.String()
 }
-
-// func outputHumanStep(timeComponent string, parsed []int64) string {
-// 	var start int
-
-// 	// Get the step by looking at the final number of steps
-// 	switch timeComponent {
-// 	default:
-// 		start = 60 / len(parsed)
-// 	}
-
-// 	var buf bytes.Buffer
-// 	tpl := template.Must(template.New("t").Parse("every {{.Start}}th {{.Tc}}"))
-// 	tpl.Execute(&buf, struct {
-// 		Tc    string
-// 		Start int
-// 	}{
-// 		timeComponent,
-// 		start,
-// 	})
-// 	return buf.String()
-// }
-
-// func outputHumanList(timeComponent string, parsed []int64) string {
-
-// 	var strParsed []string
-// 	for _, i := range parsed {
-// 		strParsed = append(strParsed, strconv.Itoa(int(i)))
-// 	}
-
-// 	var actual []string
-// 	last := strParsed[len(strParsed)-1]
-// 	actual = append(actual, strParsed[0:len(strParsed)-1]...)
-// 	actual = append(actual, "and", last)
-// 	str := strings.Join(actual, ", ")
-
-// 	var buf bytes.Buffer
-// 	tpl := template.Must(template.New("t").Parse("At {{.Tc}} {{.List}}"))
-// 	tpl.Execute(&buf, struct {
-// 		Tc   string
-// 		List string
-// 	}{
-// 		timeComponent,
-// 		str,
-// 	})
-// 	return buf.String()
-// }
 
 type component struct {
 	all        bool
@@ -230,16 +188,6 @@ type parsedOutput struct {
 	month   []int64
 	dow     []int64
 }
-
-// // outputShape stores the components (english words) that are used to build the
-// // human readable output
-// type outputShape struct {
-// 	minutes string
-// 	hours   string
-// 	dom     string
-// 	month   string
-// 	dow     string
-// }
 
 type rawParts struct {
 	minutes string
@@ -405,7 +353,7 @@ func (c *Cron) parseInputOrError(input string) (parsedOutput, error) {
 		_, intParseError := e.(*strconv.NumError)
 		if e != nil && intParseError {
 			for k, v := range c.dowNames {
-				if rawDow == v {
+				if rawDow == v[0:3] {
 					d = append(d, int64(k)+1)
 					return d, nil
 				}
@@ -589,12 +537,6 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		c.rawParts.dow == "*",
 	}, false)
 
-	// spew.Dump(minComp)
-	// spew.Dump(hourComp)
-	// spew.Dump(domComp)
-	// spew.Dump(monthComp)
-	// spew.Dump(dowComp)
-
 	// The 5 fields of a cron can be broken down into 3 sets of components:
 	//
 	//  Time Component  , which is minutes and hours
@@ -643,10 +585,10 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 				for _, i := range a {
 					temp = append(temp, strconv.Itoa(int(i)))
 				}
-				return strings.Join(temp, ",")
+				return strings.Join(temp, ", ")
 			}(minComp.values[0:ln])
 
-			minComp.override = fmt.Sprintf("%s and %d", beforeLast, last)
+			minComp.override = fmt.Sprintf("%s, and %d", beforeLast, last)
 			tcTpl = `on minutes {{.MinOverride}} `
 		}
 
@@ -689,10 +631,10 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 					for _, i := range a {
 						temp = append(temp, strconv.Itoa(int(i)))
 					}
-					return strings.Join(temp, ",")
+					return strings.Join(temp, ", ")
 				}(hourComp.values[0:ln])
 
-				hourComp.override = fmt.Sprintf("%s and %d", beforeLast, last)
+				hourComp.override = fmt.Sprintf("%s, and %d", beforeLast, last)
 				tcTpl += `{{.HourOverride}}`
 			} else {
 				tcTpl += `{{.HourStart}} through {{.HourStop}}`
@@ -724,7 +666,8 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			return ""
 		}
 
-		dcTpl := " on the "
+		var dcTpl string
+
 		if domComp.isStep {
 			dcTpl = " every "
 		}
@@ -732,7 +675,7 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		if domComp.isRange {
 			start := addOrdinalSuffix(strconv.Itoa(int(domComp.start)))
 			stop := addOrdinalSuffix(strconv.Itoa(int(domComp.stop)))
-			domComp.override = fmt.Sprintf("%s through the %s", start, stop)
+			domComp.override = fmt.Sprintf(" on the %s through the %s", start, stop)
 			dcTpl += "{{.DayOverride}}"
 		}
 
@@ -749,12 +692,12 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 			}(domComp.values[0:ln])
 
 			domComp.override = fmt.Sprintf("%s and the %s", beforeLast, addOrdinalSuffix(strconv.Itoa(int(last))))
-			dcTpl += "{{.DayOverride}}"
+			dcTpl += " on the {{.DayOverride}}"
 		}
 
 		if domComp.isSingular {
 			domComp.override = addOrdinalSuffix(strconv.Itoa(int(domComp.start)))
-			dcTpl += "{{.DayOverride}}"
+			dcTpl += " on the {{.DayOverride}}"
 		}
 
 		if domComp.isStep {
@@ -764,10 +707,21 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		}
 
 		// dow
+		//
+		// Given that the dow is tied to the dom in terms of joining phrases we
+		// need to see if we have to check the dom here to see what if any we
+		// should use
+		var joiner string
+		if domComp.all {
+			joiner = " on"
+		} else {
+			joiner = " and on"
+		}
+
 		if dowComp.isRange {
 			start := strings.Title(c.dowNames[dowComp.start])
 			stop := strings.Title(c.dowNames[dowComp.stop])
-			dowComp.override = fmt.Sprintf(" and on %s through %s", start, stop)
+			dowComp.override = fmt.Sprintf("%s %s through %s", joiner, start, stop)
 			dcTpl += "{{.WeekDayOverride}}"
 		}
 
@@ -783,18 +737,18 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 				return strings.Join(temp, ", ")
 			}(dowComp.values[0:ln])
 
-			dowComp.override = fmt.Sprintf(" and on %s, and %ss", beforeLast, strings.Title(c.dowNames[last]))
+			dowComp.override = fmt.Sprintf("%s %s, and %ss", joiner, beforeLast, strings.Title(c.dowNames[last]))
 			dcTpl += "{{.WeekDayOverride}}"
 		}
 
 		if dowComp.isSingular {
-			dowComp.override = fmt.Sprintf(" and on %ss", strings.Title(c.dowNames[dowComp.start]))
+			dowComp.override = fmt.Sprintf("%s %ss", joiner, strings.Title(c.dowNames[dowComp.start]))
 			dcTpl += "{{.WeekDayOverride}}"
 		}
 
 		if dowComp.isStep {
 			temp := strings.Split(c.rawParts.dom, "/")
-			dowComp.override = fmt.Sprintf(" and on every %s days of the week", temp[len(temp)-1])
+			dowComp.override = fmt.Sprintf("%s every %s days of the week", joiner, temp[len(temp)-1])
 			dcTpl += "{{.WeekDayOverride}}"
 		}
 
@@ -816,7 +770,58 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 		dowComp.override,
 	})
 
+	// Month Component
+	// --------------------------------------------------------------------------
+	mcTpl := func() string {
+		var mcTpl string
+
+		// When it comes to the month we only care to add that to the output when
+		// it's specific, so if its sets to all we can call it good
+		if monthComp.all {
+			return mcTpl
+		}
+
+		if monthComp.isSingular {
+			mcTpl = ` of {{.MonthStart}}`
+		}
+
+		if monthComp.isRange {
+			mcTpl = ` of {{.MonthStart}} through {{ .MonthStop }}`
+		}
+
+		// Both of these conditions produces a range of months so the template
+		// should be the same
+		if monthComp.isList || monthComp.isStep {
+			prettyMonthNames := func() string {
+				var res []string
+				for i, v := range monthComp.values {
+					if i+1 != len(monthComp.values) {
+						res = append(res, strings.Title(getPrettyMonthName(c, v)+", "))
+					} else {
+						res = append(res, "and "+strings.Title(getPrettyMonthName(c, v)))
+					}
+
+				}
+				return strings.Join(res, "")
+			}()
+
+			mcTpl = fmt.Sprintf(` of %s`, prettyMonthNames)
+		}
+
+		return mcTpl
+	}()
+	mcRendered := parseTemplate(mcTpl, struct {
+		MonthStart    interface{}
+		MonthStop     interface{}
+		MonthOverride interface{}
+	}{
+		strings.Title(getPrettyMonthName(c, monthComp.start)),
+		strings.Title(getPrettyMonthName(c, monthComp.stop)),
+		monthComp.override,
+	})
+
 	// Finalize
+	// --------------------------------------------------------------------------
 	rtn := parseTemplate(tpl, struct {
 		TimeComponent  string
 		DayComponent   string
@@ -824,234 +829,9 @@ func (c *Cron) DoFromMachine(input string) (string, error) {
 	}{
 		tcRendered,
 		dcRendered,
-		"",
+		mcRendered,
 	})
-
-	// spew.Dump(rtn)
 
 	return rtn, nil
 
-	//// Alias some facts
-	//everyMinute := len(parsed.minutes) == 60
-	//everyHour := len(parsed.hours) == 24
-	//everyDom := len(parsed.dom) == 31
-	//everyMonth := len(parsed.month) == 12
-	//everyDow := len(parsed.dow) == 8
-
-	//// Early exit if all stars
-
-	//if everyMinute {
-	//	output.minutes = ""
-	//}
-
-	//if everyHour {
-	//	output.hours = ""
-	//}
-
-	//if everyDom {
-	//	output.dom = ""
-	//}
-
-	//if everyMonth {
-	//	output.month = ""
-	//}
-
-	//if everyDow {
-	//	output.dow = ""
-	//}
-
-	//// Logic for human formatting looks like:
-	////
-	//// Each "component" is joined with the joiner token "of" since this has the
-	//// most flexibility from an english standpoint
-	////
-	//// The actual english values for each component can be mapped to the their
-	//// numeric counterpart. For ranges, steps, and lists we'll massage the text
-	//// further to allow for a clearer description
-	//if strings.Contains(c.rawParts.minutes, "-") {
-	//	tpl := `On minutes {{.Start}} through {{.Stop}}{{if .WithHours}} past the hours{{end}}`
-	//	output.minutes = parseTemplate(tpl, struct {
-	//		Start     int64
-	//		Stop      int64
-	//		WithHours bool
-	//	}{
-	//		parsed.minutes[0],
-	//		parsed.minutes[len(parsed.minutes)-1],
-	//		!everyHour,
-	//	})
-	//}
-
-	//if strings.Contains(c.rawParts.hours, "-") {
-	//	tpl := `{{.Start}} through {{.Stop}}`
-	//	output.hours = parseTemplate(tpl, struct {
-	//		Start int64
-	//		Stop  int64
-	//	}{
-	//		parsed.hours[0],
-	//		parsed.hours[len(parsed.hours)-1],
-	//	})
-	//}
-
-	//if strings.Contains(c.rawParts.dom, "-") {
-	//	tpl := `{{.Start}} through the {{.Stop}}`
-	//	output.dom = parseTemplate(tpl, struct {
-	//		Start string
-	//		Stop  string
-	//	}{
-	//		addOrdinalSuffix(strconv.Itoa(int(parsed.dom[0]))),
-	//		addOrdinalSuffix(strconv.Itoa(int(parsed.dom[len(parsed.dom)-1]))),
-	//	})
-	//}
-
-	//if strings.Contains(c.rawParts.month, "-") {
-	//	tpl := `{{.Start}} through {{.Stop}}`
-	//	output.month = parseTemplate(tpl, struct {
-	//		Start string
-	//		Stop  string
-	//	}{
-	//		strings.Title(c.monthNames[parsed.month[0]-1]),
-	//		strings.Title(c.monthNames[parsed.month[len(parsed.month)-1]-1]),
-	//	})
-	//}
-
-	//// spew.Dump(c)
-	//// spew.Dump(parsed)
-	//if strings.Contains(c.rawParts.dow, "-") {
-	//	tpl := `{{.Start}} through {{.Stop}}`
-	//	output.dow = parseTemplate(tpl, struct {
-	//		Start string
-	//		Stop  string
-	//	}{
-	//		strings.Title(c.dowNames[parsed.dow[0]]),
-	//		strings.Title(c.dowNames[parsed.dow[len(parsed.dow)-1]]),
-	//	})
-
-	//	// If both dom and dow are set, then this (dow) should take precedence. In
-	//	// either case we need to modify that the dom value
-	//	if len(output.dom) != 0 {
-	//		output.dom = output.dom + " and on " + output.dow
-	//		output.dow = ""
-	//	} else {
-	//		output.dom = output.dow
-	//		output.dow = ""
-	//		c.joiners["dom"] = "on"
-	//	}
-
-	//}
-
-	//// Handle steps
-	//// spew.Dump(parsed)
-	//if strings.Contains(c.rawParts.minutes, "/") {
-	//	tpl := `Every {{.Start}} minute`
-	//	output.minutes = parseTemplate(tpl, struct {
-	//		Start string
-	//	}{
-	//		addOrdinalSuffix(strconv.Itoa(int(parsed.minutes[1]))), // @TODO this is a hack, probably need to re-think why I'm turning into input into slices
-	//	})
-
-	//	// if len(output.hours) != 0 {
-	//	// 	c.joiners["hours"] = "of the hours"
-	//	// }
-
-	//}
-
-	//if strings.Contains(c.rawParts.hours, "/") {
-	//	tpl := `every {{.Start}} hour`
-	//	output.hours = parseTemplate(tpl, struct {
-	//		Start string
-	//	}{
-	//		addOrdinalSuffix(strconv.Itoa(int(parsed.hours[1]))),
-	//	})
-	//}
-
-	// spew.Dump(c)
-
-	// if strings.Contains(c.rawParts.dom, "-") {
-	// 	output.dom = outputHumanRange("month", parsed.dom)
-	// }
-	// spew.Dump(parsed)
-
-	// if strings.Contains(c.rawParts.minutes, "/") {
-	// 	output.minutes = outputHumanStep("minute", parsed.minutes)
-	// }
-
-	// Lists change the "every" to "at" or "on" depending on the time component
-	// if strings.Contains(c.rawParts.minutes, ",") {
-	// 	output.minutes = outputHumanList("minute", parsed.minutes)
-	// }
-
-	// Once we've done all the finagling of the english words, we'll join them
-	// all together and skip over empty strings. I believe this will allow for
-	// easier modification of "common english expressions" and tie down the rule
-	// set "ie: work from left to right and skip specificity by using empty
-	// strings"
-	// var rtn string
-	// components := []string{output.minutes, output.hours, output.dom, output.month, output.dow}
-	// joiners := []string{"", "hours", "dom", "month", "dow"}
-
-	// for i, tc := range components {
-	// 	// We can reduce the noise in the output by allow the reader to infer the
-	// 	// other time components
-	// 	i++
-	// 	if len(tc) == 0 {
-	// 		continue
-	// 	}
-
-	// 	// Only add joiner if there's another component coming up
-	// 	rtn += tc
-	// 	if i < len(components) && len(components[i]) != 0 {
-	// 		rtn += " " + c.joiners[joiners[i]] + " "
-	// 	}
-	// }
-	// return rtn, nil
-
-	// str := strings.Join([]string{
-	// 	output.minutes,
-	// 	output.hours,
-	// 	output.dom,
-	// 	output.month,
-	// 	output.dow,
-	// }, " "+joinerToken+" ",
-	// )
-	// fmt.Println("str", str)
-
-	// allStars := func() bool {
-	// 	for _, r := range rawParts {
-	// 		if r != "*" {
-	// 			return false
-	// 		}
-	// 	}
-	// 	return true
-	// }()
-	// if allStars == true {
-	// 	return true, nil
-	// }
-	// spew.Dump(allStars)
-
-	//// if both month and dom are set to *:
-	//// 		then month and dom become "daily"
-	//// else:
-	//// 		for month:
-	//// 			{month} {dom}
-	////
-	//// if day of week is not present:
-	//// 		[{month}] [{day}] at {hour minute}
-	//// else:
-	//// 		[{month}] [{day}] at {hour minute} and {dow}
-
-	//// fmt.Println("OUTPUT")
-	//// fmt.Println("for input")
-	//// fmt.Println(input)
-	//// fmt.Println("minutes")
-	//// spew.Dump(minutes)
-	//// fmt.Println("hours")
-	//// spew.Dump(hours)
-	//// fmt.Println("dom")
-	//// spew.Dump(dom)
-	//// fmt.Println("month")
-	//// spew.Dump(month)
-	//// fmt.Println("dow")
-	//// spew.Dump(dow)
-	//// fmt.Println("=================")
-	// return ErrNotYetImplemented.Error(), nil
 }

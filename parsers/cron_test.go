@@ -104,8 +104,8 @@ func TestDoFromMachineTimeComponent(t *testing.T) {
 		{"1-4 * * * *", "on minutes 1 through 4", nil},
 		{"* 1-4 * * *", "every minute past the hours of 1 through 4", nil},
 		// It should handle lists
-		{"1,2,5 * * * *", "on minutes 1,2 and 5", nil},
-		{"* 1,2,5 * * *", "every minute past the hours of 1,2 and 5", nil},
+		{"1,2,5 * * * *", "on minutes 1, 2, and 5", nil},
+		{"* 1,2,5 * * *", "every minute past the hours of 1, 2, and 5", nil},
 		// It should handle singular values
 		{"1 * * * *", "at minute 1", nil},
 		{"* 2 * * *", "every minute past 2", nil},
@@ -142,10 +142,43 @@ func TestDoFromMachineDayComponent(t *testing.T) {
 		// It should handle singular values
 		{"* * 31 * *", "every minute on the 31st", nil},
 		{"* * 7 * 0", "every minute on the 7th and on Sundays", nil},
+		{"* * * * 0", "every minute on Sundays", nil},
 		// It should handle step values
 		{"* * */2 * *", "every minute every 2 days", nil},
 		{"* * */3 * 6", "every minute every 3 days and on Saturdays", nil},
 		{"* * */3 * */3", "every minute every 3 days and on every 3 days of the week", nil},
+	}
+	for i, tt := range tests {
+		cronP := NewCron()
+		t.Run(fmt.Sprintf("Case %d: %v", i, tt.in), func(t *testing.T) {
+			got, err := cronP.DoFromMachine(tt.in)
+			if got != tt.out {
+				t.Errorf("Case %d: Given = `%s` \n; want `%s` \n; got  `%s`", i, tt.in, tt.out, got)
+			}
+			if err != tt.err {
+				t.Errorf("Case %d: Given = `%s` \n; want `%t` \n; got  `%t`", i, tt.in, tt.err, err)
+			}
+		})
+	}
+}
+
+func TestDoFromMachineMonthComponent(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+		err error
+	}{
+		// It shouldn't add anything to the output if its set to all
+		{"1 * * * *", "at minute 1", nil},
+		// It should handle singular/simple months
+		{"* * * 1 *", "every minute of Jan", nil},
+		{"* * * jan *", "every minute of Jan", nil},
+		// It should handle ranges
+		{"* * * 1-5 *", "every minute of Jan through May", nil},
+		// It should handle lists
+		{"* * * 3,6,9,12 *", "every minute of Mar, Jun, Sep, and Dec", nil},
+		// It should handle steps
+		{"* * * */4 *", "every minute of Jan, May, and Sep", nil},
 	}
 	for i, tt := range tests {
 		cronP := NewCron()
@@ -169,24 +202,23 @@ func TestDoFromMachine(t *testing.T) {
 	}{
 		// It should bubble up parsing errors
 		{"1 2 3", "", ErrUnparsable},
-    // It should handle all stars (early exit)
+		// It should handle all stars (early exit)
 		{"* * * * *", "every minute", nil},
-		//
-		// {"1-4 3-4 * * *", "On minutes 1 through 4 past the hours of 3 through 4", nil},
-		// {"1-4 3-4 5-21 * *", "On minutes 1 through 4 past the hours of 3 through 4 on the 5th through the 21st", nil},
-		// {"4-45 3-4 5-21 6-10 *", "On minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st of Jun through Oct", nil},
-		// {"4-45 3-4 5-21 6-10 4-7", "On minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st and on Thu through Sun of Jun through Oct", nil},
-		// {"4-45 3-4 * 6-10 4-7", "On minutes 4 through 45 past the hours of 3 through 4 on Thu through Sun of Jun through Oct", nil},
-		// // It should handle steps
-		// {"*/18 * * * *", "Every 18th minute", nil},
-		// {"*/18 */3 * * *", "Every 18th minute of every 3rd hour", nil},
-		// {"* 1-4 * * *", "every minute of every hour from 1 through 4", nil},
-		// // {"* * */3 * *", "every minute on the 3rd day of every month", nil},
-		// // It should handle steps
-		// {"*/4 * * * *", "every 4th minute", nil},
-		// // It should lists
-		// // @TODO                              this comma here could be removed
-		// {"1,3,7 * * * *", "At minute 1, 3, and, 7", nil},
+		// It should handle ranges
+		{"1-4 3-4 * * *", "on minutes 1 through 4 past the hours of 3 through 4", nil},
+		{"1-4 3-4 5-21 * *", "on minutes 1 through 4 past the hours of 3 through 4 on the 5th through the 21st", nil},
+		{"4-45 3-4 5-21 6-10 *", "on minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st of Jun through Oct", nil},
+		{"4-45 3-4 5-21 6-10 4-7", "on minutes 4 through 45 past the hours of 3 through 4 on the 5th through the 21st and on Thursday through Sunday of Jun through Oct", nil},
+		{"4-45 3-4 * 6-10 4-7", "on minutes 4 through 45 past the hours of 3 through 4 on Thursday through Sunday of Jun through Oct", nil},
+		// It should handle steps
+		{"*/18 * * * *", "every 18 minutes", nil},
+		{"*/18 */3 * * *", "every 18 minutes past every 3 hours", nil},
+		{"* 1-4 * * *", "every minute past the hours of 1 through 4", nil},
+		{"* * */3 * *", "every minute every 3 days", nil},
+		// It should handle steps
+		{"*/4 * * * *", "every 4 minutes", nil},
+		// It should lists
+		{"1,3,7 * * * *", "on minutes 1, 3, and 7", nil},
 	}
 
 	for i, tt := range tests {
