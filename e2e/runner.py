@@ -63,10 +63,19 @@ def rm_script(script):
     os.remove(script)
 
 
+def build(src_path, output_path):
+    subprocess.check_output(["go", "build", "-o", output_path], cwd=src_path)
+
+
 if __name__ == "__main__":
     # each file should be a yaml file
     files = sys.argv[1:]
     tmpdir = os.environ["E2E_TMP_DIR"]
+    path_to_bin = f"{tmpdir}/human"
+    path_to_src = "/".join(tmpdir.split("/")[0:-2])
+
+    build(path_to_src, path_to_bin)
+    tokens["%%human%%"] = path_to_bin
 
     for f in files:
         suite = parse_spec(f)["suite"]
@@ -89,7 +98,7 @@ if __name__ == "__main__":
                 else:
                     good(f'{case["name"]}')
 
-                rm_script(script)
-
             if "cleanup" in case:
                 print("handle cleanup")
+
+            rm_script(script)
