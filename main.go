@@ -11,6 +11,11 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+// centralize all the writing to stdout here
+func doOutput(a interface{}) {
+	fmt.Println(a)
+}
+
 func run(log io.Ourlog, args io.CliArgs) {
 	log.Debug("Program start")
 	log.Debug(spew.Sdump(args))
@@ -25,11 +30,12 @@ func run(log io.Ourlog, args io.CliArgs) {
 
 	// If user is asking for help, then all other input gathering logic is
 	// avoided since this would not be a normal run.
+	// Note there's also a "help" command, were not considering that here because
+	// since that's a command it can follow the normal flow
 	passedHelp := func() bool {
 		_, shortOpt := args.Flags["h"]
 		_, longOpt := args.Options["help"]
-		posArg := len(args.Positionals) == 1 && args.Positionals[0] == "help"
-		if shortOpt || posArg || longOpt {
+		if shortOpt || longOpt {
 			return true
 		}
 		return false
@@ -48,14 +54,20 @@ func run(log io.Ourlog, args io.CliArgs) {
 
 	if passedHelp {
 		helpCmd := cmds.NewGlobalHelp()
-		output := cmds.UsageTemplate(helpCmd)
-    fmt.Println(output.String())
+		output, _ := helpCmd.Run("", "", args)
+		doOutput(output)
 		return
 	}
 
-	// Figure out direction and which format
-	// we'll default to the `--from` direction since it might be the most common
-	// usecase i.e. we want to go "from" machine into human format
+	// Are we processing a command or a format?
+	//
+	// Commands don't require parsers or the like so for those we just need to
+	// execute them.
+	//
+	// If we are processing a format, then we need to figure out direction and
+	// which format  we'll default to the `--from` direction since it might be
+	// the most common usecase i.e. we want to go "from" machine into human
+	// format
 	input := args.Positionals[0]
 	direction := "from"
 	format := ""
@@ -64,6 +76,17 @@ func run(log io.Ourlog, args io.CliArgs) {
 			direction = d
 			format = val
 		}
+	}
+
+	if c, ok := cmds.GetCommand(input); ok {
+		output, err := c.Run(direction, input, args)
+		if err != nil {
+			spew.Dump(err)
+			return
+		}
+		doOutput(output)
+		return
+
 	}
 
 	// The logic here is that if no explicit `into` or `from` option was given
@@ -87,7 +110,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 		for _, c := range handlers {
 			output, _ = c.Run(direction, input, args)
 			if output != "" {
-				fmt.Println(output)
+				doOutput(output)
 			}
 		}
 		return
@@ -100,10 +123,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 	}
 
 	output, _ = c.Run(direction, input, args)
-	if output != "" {
-		fmt.Println(output)
-	}
-
+	doOutput(output)
 }
 
 func main() {

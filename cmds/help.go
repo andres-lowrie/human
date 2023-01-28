@@ -3,7 +3,29 @@ package cmds
 import (
 	"fmt"
 	"strings"
+
+	"github.com/andres-lowrie/human/io"
 )
+
+func allCommandOut() []string {
+	allCommands := GetAllCommands()
+
+	var rtn []string
+	for _, c := range allCommands {
+		rtn = append(rtn, fmt.Sprintf("%s: %s", c.Name(), c.ShortDesc()))
+	}
+	return rtn
+}
+
+func allFormatOut() []string {
+	allFormats := GetAllFormats()
+
+	var rtn []string
+	for _, c := range allFormats {
+		rtn = append(rtn, fmt.Sprintf("%s: %s", c.Name(), c.ShortDesc()))
+	}
+	return rtn
+}
 
 type GlobalHelp struct {
 	name      string
@@ -13,18 +35,6 @@ type GlobalHelp struct {
 }
 
 func NewGlobalHelp() *GlobalHelp {
-	allCommands := GetAllCommands()
-	allFormats := GetAllFormats()
-
-	var allCommandOut []string
-	for _, c := range allCommands {
-		allCommandOut = append(allCommandOut, fmt.Sprintf("%s: %s", c.Name(), c.ShortDesc()))
-	}
-
-	var allFormatOut []string
-	for _, c := range allFormats {
-		allFormatOut = append(allFormatOut, fmt.Sprintf("%s: %s", c.Name(), c.ShortDesc()))
-	}
 
 	return &GlobalHelp{
 		name:      "global help",
@@ -36,7 +46,32 @@ CMD can be any of the following
 
 FORMAT can be any of the following
   %s
-`, strings.Join(allCommandOut, "\n  "), strings.Join(allFormatOut, "\n  ")),
+
+OPTS
+  Are the flags (short options) and parameters (long options) that the CMD or FORMAT wants.
+  There are also the following global options:
+    --into: You're supplying human and want to translate into machine
+    --from: You're supplying machine and want to translate into human
+    -v[vvv]: Verbose output; each v increases the verbosity (from info to debug)
+  
+ARGS
+  This can be positional arguments, path to file(s), or standard in.
+  Every FORMAT/CMD defines what it expects,
+  for more information run "human help"
+
+Examples
+  Add decimal separators to a number:
+    human number -g 1000000000
+
+  Translate cron:
+    human cron '* * * * *'
+
+  Process every line in a file:
+    echo "1024\n4579\n45649" | human size
+
+  Run the input against every format human knows of:
+    human $anything
+`, strings.Join(allCommandOut(), "\n  "), strings.Join(allFormatOut(), "\n  ")),
 	}
 }
 
@@ -56,19 +91,33 @@ func (g *GlobalHelp) LongDesc() string {
 	return g.longDesc
 }
 
+func (g *GlobalHelp) Run(direction, input string, args io.CliArgs) (string, error) {
+	out := UsageTemplate(g)
+	return out.String(), nil
+}
+
 type Help struct {
 	name      string
 	usage     string
 	shortDesc string
 	longDesc  string
+  // these are particular for this command
+  topics map[string]string
 }
 
 func NewHelp() *Help {
 	return &Help{
 		name:      "help",
-		usage:     "human help (CMD|FORMAT)",
-		shortDesc: "Get usage and examples for a format or command",
-		longDesc:  "@TODO probably need to figure out how to get this information out as well",
+		usage:     "human help (CMD|FORMAT|TOPIC)",
+		shortDesc: "Get usage and examples formats, commands, and topics",
+		longDesc: `
+human has 2 types actions arguments, a FORMAT and a CMD. A FORMAT is what
+the human tool can translate into and from and a CMD is any action that it
+can perform that is not a translation.
+
+Get more in depth help for a CMD|FORMAT running any of these:
+  %s
+`,
 	}
 }
 
@@ -85,5 +134,16 @@ func (h *Help) ShortDesc() string {
 }
 
 func (h *Help) LongDesc() string {
-	return h.longDesc
+	var cmds []string
+	for _, c := range GetAllCommands() {
+		if c.Name() != "help" {
+			cmds = append(cmds, c.Name())
+		}
+	}
+	return fmt.Sprintf(h.longDesc, strings.Join(cmds, "\n  "))
+}
+
+func (h *Help) Run(direction, input string, args io.CliArgs) (string, error) {
+	out := UsageTemplate(h)
+	return out.String(), nil
 }

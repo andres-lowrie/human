@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/andres-lowrie/human/format"
+	"github.com/andres-lowrie/human/io"
 )
 
 // ... can't think of an easier way to enforce fields on Commands without
@@ -15,6 +16,7 @@ type Command interface {
 	Usage() string
 	ShortDesc() string
 	LongDesc() string
+	Run(string, string, io.CliArgs) (string, error)
 }
 
 // GetAllCommands returns all the commands. Note that `Command` is not the same
@@ -32,6 +34,17 @@ func GetAllCommands() []Command {
 // used to build usage strings
 func GetAllFormats() []Command {
 	return []Command{format.NewNumber(), format.NewSize()}
+}
+
+// GetCommand checks a string against the Name of every command, returns the
+// command if they match
+func GetCommand(s string) (Command, bool) {
+	for _, c := range GetAllCommands() {
+		if c.Name() == s {
+			return c, true
+		}
+	}
+	return nil, false
 }
 
 // UsageTemplate used to create strings for output from cmds.Command
