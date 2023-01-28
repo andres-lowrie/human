@@ -1,0 +1,13 @@
+---
+suite:
+  cases:
+    # # human
+    # - name: "It should read from stdin if no arguments"
+    #   test: |
+    #     exit 1
+
+    # help and usage
+    # ------------------------------------------------------------------------
+    - name: "It should show help when called like `human -h`"
+      test: |
+        %%human%% -h | head -n 1 | rg '^usage'

@@ -5,10 +5,37 @@ import (
 	"github.com/andres-lowrie/human/parsers"
 )
 
-type Size struct{}
+type Size struct{
 
-func NewSize() Format {
-	return &Size{}
+	name      string
+	usage     string
+	shortDesc string
+	longDesc  string
+}
+
+func NewSize() *Size {
+  return &Size{
+    name: "size",
+    usage: "human size [--units (si|iec)] [ARGS]...",
+    shortDesc: "converts continuous numbers into common machine sizes like Mb Gb",
+    longDesc: "@TODO",
+  }
+}
+
+func (s *Size) Name() string {
+	return s.name
+}
+
+func (s *Size) Usage() string {
+	return s.usage
+}
+
+func (s *Size) ShortDesc() string {
+	return s.shortDesc
+}
+
+func (s *Size) LongDesc() string {
+	return s.longDesc
 }
 
 func (s *Size) GetParsers() []parsers.Parser {

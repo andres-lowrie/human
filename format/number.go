@@ -6,10 +6,35 @@ import (
 )
 
 type Number struct {
+	name      string
+	usage     string
+	shortDesc string
+	longDesc  string
 }
 
-func NewNumber() Format {
-	return &Number{}
+func NewNumber() *Number {
+	return &Number{
+		name:      "number",
+		usage:     "human number [-w] [ARGS...]",
+		shortDesc: "makes continuous numbers easier to read",
+		longDesc:  "@TODO doc -w",
+	}
+}
+
+func (n *Number) Name() string {
+	return n.name
+}
+
+func (n *Number) Usage() string {
+	return n.usage
+}
+
+func (n *Number) ShortDesc() string {
+	return n.shortDesc
+}
+
+func (n *Number) LongDesc() string {
+	return n.longDesc
 }
 
 func (n *Number) GetParsers() []parsers.Parser {

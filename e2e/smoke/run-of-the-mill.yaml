@@ -1,7 +1,0 @@
----
-suite:
-  cases:
-    # human
-    - name: "It should show usage if no arguments"
-      test: |
-        %%human%% | head -n 1 | rg -e '^usage'

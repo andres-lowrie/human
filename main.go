@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/andres-lowrie/human/cmds"
 	"github.com/andres-lowrie/human/format"
 	"github.com/andres-lowrie/human/io"
 	"github.com/davecgh/go-spew/spew"
@@ -22,14 +23,39 @@ func run(log io.Ourlog, args io.CliArgs) {
 	// @TODO see if we can use GetParsers instead of instantiating directly
 	handlers := map[string]format.Format{"number": format.NewNumber(), "size": format.NewSize()}
 
-	// Figure out direction and which format
-	// we'll default to the `--from` direction since it might be the most common
-	// usecase i.e. we want to go "from" machine into human format
-	if len(args.Positionals) < 1 {
-		log.Warn("@TODO read arguments from stdin")
+	// If user is asking for help, then all other input gathering logic is
+	// avoided since this would not be a normal run.
+	passedHelp := func() bool {
+		_, shortOpt := args.Flags["h"]
+		_, longOpt := args.Options["help"]
+		posArg := len(args.Positionals) == 1 && args.Positionals[0] == "help"
+		if shortOpt || posArg || longOpt {
+			return true
+		}
+		return false
+	}()
+
+	// @TODO read stdin
+	if len(args.Positionals) < 1 && passedHelp == false {
+		fmt.Println("@TODO read arguments from stdin")
+		// if stdio is empty, then we need to show usage
+		// r := bufio.NewReader(os.Stdin)
+		// _, err := r.Peek(10)
+		// // spew.Dump(got)
+		// spew.Dump(err)
 		return
 	}
 
+	if passedHelp {
+		helpCmd := cmds.NewGlobalHelp()
+		output := cmds.UsageTemplate(helpCmd)
+    fmt.Println(output.String())
+		return
+	}
+
+	// Figure out direction and which format
+	// we'll default to the `--from` direction since it might be the most common
+	// usecase i.e. we want to go "from" machine into human format
 	input := args.Positionals[0]
 	direction := "from"
 	format := ""
