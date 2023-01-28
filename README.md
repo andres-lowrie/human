@@ -29,6 +29,16 @@ human "run five minutes after midnight every day"
 > 5 0 * * *
 ```
 
+## File Organization
+
+```
+e2e/      # End-to-End testing
+cmds/     # The auxiliary arguments and commands which are not `format`s (for example `human -h`)
+format/   # The things this knows how to read and write. The interface main.go is calling
+io/       # Input/Output functions and types
+parsers/  # The functions that do the actual work, called by `format`s
+```
+
 For full breakdown see [commands](cmds/README.md)
 
 ## End to End Testing
