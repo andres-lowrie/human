@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/andres-lowrie/human/io"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func allCommandOut() []string {
@@ -111,11 +112,14 @@ func NewHelp() *Help {
 		usage:     "human help (CMD|FORMAT|TOPIC)",
 		shortDesc: "Get usage and examples formats, commands, and topics",
 		longDesc: `
-human has 2 types actions arguments, a FORMAT and a CMD. A FORMAT is what
-the human tool can translate into and from and a CMD is any action that it
-can perform that is not a translation.
+human has 2 types of actions arguments, a FORMAT and a CMD as a TOPIC that
+dives into naunce and deeper explanations
 
-Get more in depth help for a CMD|FORMAT running any of these:
+A FORMAT is what the human tool can translate into and from and a CMD is any
+action that it can perform that is not a translation.
+
+Get more in depth help for a CMD|FORMAT|TOPIC running "human help {}" and anyone of these:
+  %s
   %s
 `,
 	}
@@ -140,10 +144,31 @@ func (h *Help) LongDesc() string {
 			cmds = append(cmds, c.Name())
 		}
 	}
-	return fmt.Sprintf(h.longDesc, strings.Join(cmds, "\n  "))
+
+	var fmts []string
+	for _, f := range allFormatOut() {
+		fmts = append(fmts, strings.Split(f, ":")[0])
+	}
+
+	return fmt.Sprintf(
+		h.longDesc,
+		strings.Join(cmds, "\n  "),
+		strings.Join(fmts, "\n  "),
+	)
 }
 
 func (h *Help) Run(direction, input string, args io.CliArgs) (string, error) {
+	if len(args.Positionals) == 2 {
+		query := args.Positionals[1]
+		cmds := GetAllCommands()
+    // @LEFT-OFF
+    //  this should show the description of formats, commands, and topics. Topics doesn't exits yet
+		// fmts := GetAllFormats()
+		spew.Dump(cmds[query])
+		if c, ok := cmds[query]; ok {
+			spew.Dump(c)
+		}
+	}
 	out := UsageTemplate(h)
 	return out.String(), nil
 }

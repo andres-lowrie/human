@@ -20,20 +20,20 @@ type Command interface {
 }
 
 // GetAllCommands returns all the commands. Note that `Command` is not the same
-// as a `Format`; a command is cli "sub-command" whereas a format is the things
+// as a `Format`; a command is a cli "sub-command" whereas a format is the things
 // human knows how to parse
 //
 // Note that this skips over the GlobalHelp command because that command uses
 // this function at initialization
-func GetAllCommands() []Command {
-	return []Command{NewHelp()}
+func GetAllCommands() map[string]Command {
+	return map[string]Command{"help": NewHelp()}
 }
 
 // GetAllFormats returns all the formats as Commands, given
 // that they also implement the Command interface. This is
 // used to build usage strings
-func GetAllFormats() []Command {
-	return []Command{format.NewNumber(), format.NewSize()}
+func GetAllFormats() map[string]Command {
+	return map[string]Command{"number": format.NewNumber(), "size": format.NewSize()}
 }
 
 // GetCommand checks a string against the Name of every command, returns the

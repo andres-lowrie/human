@@ -39,7 +39,19 @@ io/       # Input/Output functions and types
 parsers/  # The functions that do the actual work, called by `format`s
 ```
 
-For full breakdown see [commands](cmds/README.md)
+## Code Concepts
+
+There are 3 core interfaces at play:
+
+- The [Command](cmds/cmds.go#L13)
+- The [Format](format/format.go#L8)
+- The [Parser](parsers/parsers.go#L9)
+
+The `Parser` is the thing that actually does the translating work.
+
+A `Format` houses a `Parser` or many parsers depending on the complexity of the format, it acts as a wrapper between a `Command` and a `Parser`
+
+The `Command` is what something has to implement in order to show information via `help` and to actually get executed by the main function. By design every `Format` also implements `Command`
 
 ## End to End Testing
 
