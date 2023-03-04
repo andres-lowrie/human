@@ -48,7 +48,7 @@ Organization of files looks like this
   ```
   e2e/
     runner.py     # reads shell scripts and runs them
-    figtures/
+    fixtures/
       some-file1
       some-file2
     $parser1/
@@ -57,7 +57,7 @@ Organization of files looks like this
     $parser2/
     ...
   ```
-  
+
 The `runner.py` script will:
   - run string replacement
   - execute the steps of a test
@@ -72,6 +72,8 @@ The `runner.py` script will:
 
 ```
 cd e2e
+mkdir tmp
+export E2E_TMP_DIR=$repo/e2e/tmp
 ./runner.py $paths-to-yaml-file
 ```
 
@@ -90,13 +92,13 @@ suite:
 
       cleanup: |
         echo "cleaning up"
-        
+
     - name: "It should do something else"
       test: |
         echo "doing something else"
 ```
 
-- For each `case`, only the `test` property is mandatory, everything lese is optional
+- For each `case`, only the `test` property is mandatory, everything else is optional
 - For each `test`, if the script returns non-zero (`0`) then that will be marked as failed and you'll get both standard error and standard out for said script to the screen
 - `@TODO` All the tests run asynchronously
 - The following tokens will be replaced by the runner

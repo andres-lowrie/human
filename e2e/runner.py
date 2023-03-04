@@ -95,6 +95,7 @@ if __name__ == "__main__":
                     bad(f'Failed: {case["name"]}')
                     print("\tStdOut", out.stdout)
                     print("\tStdErr", out.stderr)
+                    print(script)
                 else:
                     good(f'{case["name"]}')
 

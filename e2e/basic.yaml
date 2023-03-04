@@ -1,13 +1,16 @@
 ---
 suite:
   cases:
-    # # human
-    # - name: "It should read from stdin if no arguments"
-    #   test: |
-    #     exit 1
-
     # help and usage
     # ------------------------------------------------------------------------
-    - name: "It should show help when called like `human -h`"
+    - name: "It should show usage when called like `human -h`"
       test: |
         %%human%% -h | head -n 1 | rg '^usage'
+
+    - name: "It should show usage when called like `human --help`"
+      test: |
+        %%human%% --help | head -n 1 | rg '^usage'
+
+    - name: "It should show help's usage when called like `human help`"
+      test: |
+        %%human%% help | head -n 1 | rg '^usage: human help'

@@ -101,8 +101,8 @@ type Help struct {
 	usage     string
 	shortDesc string
 	longDesc  string
-  // these are particular for this command
-  topics map[string]string
+	// these are particular for this command
+	topics map[string]string
 }
 
 func NewHelp() *Help {
