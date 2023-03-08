@@ -17,8 +17,61 @@ func NewSize() *Size {
   return &Size{
     name: "size",
     usage: "human size [--units (si|iec)] [ARGS]...",
-    shortDesc: "converts continuous numbers into common machine sizes like Mb Gb",
-    longDesc: "@TODO",
+    shortDesc: "converts continuous numbers into common machine sizes like Mb Gb or converts sizes into number of bytes they represent",
+    longDesc: `
+When "--units" isn't passed, it defaults to "iec" (See tables below for more info).
+
+From Machine:
+  Typically when dealing with machine output  most things expect the number of bytes.
+
+  Examples:
+    How many gibibytes is 1000000000
+    """
+    echo 1000000000 | human
+    > 0.9Gi
+    """
+
+    How many gigabytes is 1000000000
+    """
+    echo 1000000000 | human --unit si
+    > 1.0Gb
+    """
+
+To Machine:
+  This expects a suffix at the end of the input to know how to respond
+
+  Examples:
+    Give me the number of bytes in 2Mi
+    """
+    human 2Mi
+    > 2097152
+    """
+
+    Give me the number of bytes in 2G using si conversion
+    """
+    human --units si 2g
+    2000000000
+    """
+
+Units Breakdown:
+  The following tables shows how the units work. The columns "short" and "long"
+  show the suffixes that can be given and the column "value" shows the factor of
+  the size
+  
+          units: si                             unit: iec
+  | short |  long  | value |           | short |  long  | value  |
+  |=======|========|=======|           |=======|========|========|
+  |   k   | kilo   | 10^3  |           |  ki   |  kibi  |  2^10  |
+  |   m   | mega   | 10^6  |           |  mi   |  mebi  |  2^20  |
+  |   g   | giga   | 10^9  |           |  gi   |  gibi  |  2^30  |
+  |   t   | terra  | 10^12 |           |  ti   |  tebi  |  2^40  |
+  |   p   | peta   | 10^15 |           |  pi   |  pebi  |  2^50  |
+  |   e   | exa    | 10^18 |           |  ei   |  exbi  |  2^60  |
+  |   z   | zetta  | 10^21 |           |  zi   |  zebi  |  2^70  |
+  |   y   | yotta  | 10^24 |           |  yi   |  yobi  |  2^80  |
+  |   r   | ronna  | 10^27 |           
+  |   q   | quetta | 10^30 |           
+`,
   }
 }
 

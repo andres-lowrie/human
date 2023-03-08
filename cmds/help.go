@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/andres-lowrie/human/io"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func allCommandOut() []string {
@@ -158,17 +157,25 @@ func (h *Help) LongDesc() string {
 }
 
 func (h *Help) Run(direction, input string, args io.CliArgs) (string, error) {
+	tpl := UsageTemplate(h)
+	out := tpl.String()
+
 	if len(args.Positionals) == 2 {
 		query := args.Positionals[1]
 		cmds := GetAllCommands()
-    // @LEFT-OFF
-    //  this should show the description of formats, commands, and topics. Topics doesn't exits yet
-		// fmts := GetAllFormats()
-		spew.Dump(cmds[query])
-		if c, ok := cmds[query]; ok {
-			spew.Dump(c)
+		fmts := GetAllFormats()
+
+		var c Command
+		var ok bool
+		if c, ok = cmds[query]; !ok {
+			if c, ok = fmts[query]; !ok {
+				out = fmt.Sprintf(`"%s" is not a known CMD|FORMAT|TOPIC. Try "human help"`, query)
+			}
+		}
+
+		if c != nil {
+			out = strings.Join([]string{c.Usage(), c.ShortDesc(), c.LongDesc()}, "\n")
 		}
 	}
-	out := UsageTemplate(h)
-	return out.String(), nil
+	return out, nil
 }
