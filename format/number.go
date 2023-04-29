@@ -3,6 +3,7 @@ package format
 import (
 	"github.com/andres-lowrie/human/io"
 	"github.com/andres-lowrie/human/parsers"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type Number struct {
@@ -16,7 +17,7 @@ func NewNumber() *Number {
 	return &Number{
 		name:      "number",
 		usage:     "human number [-w] [ARGS...]",
-		shortDesc: "makes continuous numbers easier to read",
+		shortDesc: "makes continuous numbers easier to read or turns english numbers into base 10 numbers; eg. '1 million' gives '1000000'",
 		longDesc:  "@TODO doc -w",
 	}
 }
@@ -46,6 +47,8 @@ func (n *Number) Run(direction string, input string, args io.CliArgs) (string, e
 	var p parsers.Parser
 
 	p = parsers.NewNumberGroup()
+	spew.Dump(args.Flags)
+	spew.Dump(direction)
 
 	if _, ok := args.Flags["w"]; ok {
 		p = parsers.NewNumberWord()

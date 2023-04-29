@@ -1,6 +1,9 @@
 human
 ======
 
+@leftoff
+- fix --into and --from options. The unit tests pass but the not the command so there's a bad assumption somewhere that lets the api work but not the cli
+
 [Translate](Translate) stuff from `Machine -> Human` and back again `Human -> Machine`
 
 ## TL;DR

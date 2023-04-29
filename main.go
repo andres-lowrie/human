@@ -65,13 +65,25 @@ func run(log io.Ourlog, args io.CliArgs) {
 	// execute them.
 	//
 	// If we are processing a format, then we need to figure out direction and
-	// which format  we'll default to the `--from` direction since it might be
+	// which format we'll default to the `--from` direction since it might be
 	// the most common usecase i.e. we want to go "from" machine into human
 	// format
 	input := args.Positionals[0]
 	direction := "from"
 	format := ""
+	fmt.Println("1")
+	spew.Dump(args.Options)
 	for _, d := range []string{"into", "from"} {
+		fmt.Println("2")
+		fmt.Println(d)
+		spew.Dump(args.Options[d])
+
+    // @leftoff the problem here is that the order of the flags (like -w for
+    // example) will come after the direction option given the intended flow.
+    // Perhaps passing as a flag (-into, -i or -from -f). What would something
+    // like `human format from|into ...`? feels like it would require checking
+    // the positionals and making sure that they dont interfere with format
+    // args
 		if val, ok := args.Options[d]; ok && val != "" {
 			direction = d
 			format = val
