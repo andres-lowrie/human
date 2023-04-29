@@ -109,7 +109,7 @@ func NewHelp() *Help {
 	return &Help{
 		name:      "help",
 		usage:     "human help (CMD|FORMAT|TOPIC)",
-		shortDesc: "Get usage and examples formats, commands, and topics",
+		shortDesc: "Get usage, examples formats, commands, and topics",
 		longDesc: `
 human has 2 types of actions arguments, a FORMAT and a CMD as a TOPIC that
 dives into naunce and deeper explanations

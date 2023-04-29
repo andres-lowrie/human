@@ -15,6 +15,6 @@ suite:
       test: |
         %%human%% help | head -n 1 | rg '^usage: human help'
 
-    - name: "It should show fomat usage when called like `human $format`"
+    - name: "It should show format usage when called like `human $format`"
       test: |
-        %%human%% help size | false
+        %%human%% help size | head -n 1 | rg '^human size'

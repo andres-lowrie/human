@@ -47,7 +47,7 @@ func GetCommand(s string) (Command, bool) {
 	return nil, false
 }
 
-// UsageTemplate used to create strings for output from cmds.Command
+// UsageTemplate used to create strings for usage output from cmds.Command
 func UsageTemplate(c Command) bytes.Buffer {
 	funcs := template.FuncMap{
 		"rmLead": func(s string) string { return strings.TrimLeft(s, "\n") },
