@@ -23,7 +23,7 @@ func TestSizeFormatRun(t *testing.T) {
 		{"from", "1000", io.ParseCliArgs([]string{"--units", "si"}), "1.0Kb", nil},
 		// Should fail if input is unparsable
 		{"from", "xxxx", io.ParseCliArgs([]string{""}), "", parsers.ErrUnparsable},
-		// Happy Path
+		// Happy Pat
 		{"from", "2097152", io.ParseCliArgs([]string{"--units", "iec"}), "2.0Mi", nil},
 		{"into", "1G", io.ParseCliArgs([]string{"--units", "si"}), "1000000000", nil},
 	}

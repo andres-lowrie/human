@@ -1,5 +1,5 @@
 package parsers
-
+ 
 import (
 	"errors"
 	"fmt"
