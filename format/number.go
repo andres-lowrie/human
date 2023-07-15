@@ -3,7 +3,6 @@ package format
 import (
 	"github.com/andres-lowrie/human/io"
 	"github.com/andres-lowrie/human/parsers"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type Number struct {
@@ -16,9 +15,16 @@ type Number struct {
 func NewNumber() *Number {
 	return &Number{
 		name:      "number",
-		usage:     "human number [-w] [ARGS...]",
+		usage:     "human number [-(g|w)] [ARGS...]",
 		shortDesc: "makes continuous numbers easier to read or turns english numbers into base 10 numbers; eg. '1 million' gives '1000000'",
-		longDesc:  "@TODO doc -w",
+    longDesc:  `
+There are 2 ways to deal with numbers: as groups or words and they are controlled by the following flags
+
+-g: Groups means digit grouping and a comma (,) is used separate, thousands, ten thousands, and so on
+-w: Words means that you want the english representation of a number
+
+If no flag is given, then this defaults to groups (-g)
+    `,
 	}
 }
 
@@ -47,8 +53,6 @@ func (n *Number) Run(direction string, input string, args io.CliArgs) (string, e
 	var p parsers.Parser
 
 	p = parsers.NewNumberGroup()
-	spew.Dump(args.Flags)
-	spew.Dump(direction)
 
 	if _, ok := args.Flags["w"]; ok {
 		p = parsers.NewNumberWord()
