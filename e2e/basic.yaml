@@ -18,3 +18,28 @@ suite:
     - name: "It should show format usage when called like `human $format`"
       test: |
         %%human%% help size | head -n 1 | rg '^human size'
+
+    # handle flow (direction)
+    #
+    # `direction` is a Flag that is passed as -i (into) or -f (from)
+    # ------------------------------------------------------------------------
+    - name: "It should default `direction` to --from"
+      test: |
+        %%human%% number 100000 | rg '^100,000$'
+
+    - name: "It should be able to discern -f"
+      test: |
+        %%human%% -f 100000 | rg '^100,000$'
+
+    # remind me later what I decided on in terms of how to specify direction
+    - name: "It should fail if --from (the Option) is used"
+      test: |
+        %%human%% --from 100000 | %%notimpiementedyet%% # this should fail because 10000 becomes the value for --from
+
+    - name: "It should default fail if `direction` passed is unknown"
+      test: |
+        %%human%% --foo | %%notimpiementedyet%%
+
+    - name: "It should be able to discern -i"
+      test: |
+        %%human%% -i 100,000 | rg '^100000$'

@@ -11,9 +11,36 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+type Direction struct {
+	From bool
+	Into bool
+	// @todo fix this hack by passing in the Direction type to the other functions
+	toStr func() string
+}
+
+func getDirection(args io.CliArgs) Direction {
+	d := Direction{From: true}
+
+	if args.Flags["i"] || len(args.Options["--input"]) > 0 {
+		d.From = false
+		d.Into = true
+	}
+
+	d.toStr = func() string {
+		if d.Into {
+			return "into"
+		}
+		return "from"
+	}
+
+	return d
+}
+
 // centralize all the writing to stdout here
 func doOutput(a interface{}) {
-	fmt.Println(a)
+	log := io.NewLogger(io.OFF, false)
+  log.Debug("Output:")
+	log.Debug(spew.Sdump(a))
 }
 
 func run(log io.Ourlog, args io.CliArgs) {
@@ -30,8 +57,8 @@ func run(log io.Ourlog, args io.CliArgs) {
 
 	// If user is asking for help, then all other input gathering logic is
 	// avoided since this would not be a normal run.
-	// Note there's also a "help" command, were not considering that here because
-	// since that's a command it can follow the normal flow
+	// Note there's also a "help" command, we're not considering that here because
+	// that's a command and so it can follow the normal flow
 	passedHelp := func() bool {
 		_, shortOpt := args.Flags["h"]
 		_, longOpt := args.Options["help"]
@@ -43,7 +70,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 
 	// @TODO read stdin
 	if len(args.Positionals) < 1 && passedHelp == false {
-		fmt.Println("@TODO read arguments from stdin")
+		fmt.Println("@notimplementedyet read arguments from stdin")
 		// if stdio is empty, then we need to show usage
 		// r := bufio.NewReader(os.Stdin)
 		// _, err := r.Peek(10)
@@ -65,67 +92,38 @@ func run(log io.Ourlog, args io.CliArgs) {
 	// execute them.
 	//
 	// If we are processing a format, then we need to figure out direction and
-	// which format we'll default to the `--from` direction since it might be
+	// which format. We'll default to the `--from` direction since it might be
 	// the most common usecase i.e. we want to go "from" machine into human
 	// format
 	input := args.Positionals[0]
-	direction := "from"
-	format := ""
-	fmt.Println("1")
-	spew.Dump(args)
-	for _, d := range []string{"into", "from"} {
-		fmt.Println("2")
-		fmt.Println(d)
-		spew.Dump(args.Options[d])
-    fmt.Println("=======")
-
-    // @leftoff according to my notes, direction should be the first Option passed and it should default to `--from`
-    // so this is not a bug bug instead a misunderstanding from my part
-    //
-    // okay so what I have to do is:
-    //
-    // - create a test case that encodes this logic, which means:
-    // -  `/human --into number "1 million"` -> 1000000
-    // -  `/human --from number "1 million"` -> Error
-    // -  `/human number "1 million"` -> Error
-		if val, ok := args.Options[d]; ok && val != "" {
-			direction = d
-			format = val
-		}
-	}
-	spew.Dump(direction)
+	direction := getDirection(args)
+	log.Debug("Direction: %s", direction.toStr())
 
 	if c, ok := cmds.GetCommand(input); ok {
-		output, err := c.Run(direction, input, args)
+		output, err := c.Run(direction.toStr(), input, args)
 		if err != nil {
-			spew.Dump(err)
 			return
 		}
 		doOutput(output)
 		return
-
 	}
 
-	// The logic here is that if no explicit `into` or `from` option was given
+	// The logic here is that if no explicit `into` or `from` flag (ie: `direction`) was given
 	// then the first positional argument (read left from right) is the format
 	// and anything after that is the actual input, however if only 1 positional
 	// argument was given then that must be the input in which case we should run
-	// all the possible translations, this is why we're checking format for
-	// emptiness twice
-	if format == "" {
-		if len(args.Positionals) > 1 {
-			format = args.Positionals[0]
-			input = args.Positionals[1]
-		}
+	// all the possible translations (ie: formats)
+	var format string
+	if len(args.Positionals) > 1 {
+		format = args.Positionals[0]
+		input = args.Positionals[1]
 	}
-	log.Info("format is set to: ", format)
-	log.Info("input is set to: ", input)
-	log.Info("direction is set to: ", direction)
+	log.Debug("Format: %s", format)
 
 	var output string
 	if format == "" {
 		for _, c := range handlers {
-			output, _ = c.Run(direction, input, args)
+			output, _ = c.Run(direction.toStr(), input, args)
 			if output != "" {
 				doOutput(output)
 			}
@@ -139,7 +137,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 		return
 	}
 
-	output, _ = c.Run(direction, input, args)
+	output, _ = c.Run(direction.toStr(), input, args)
 	doOutput(output)
 }
 

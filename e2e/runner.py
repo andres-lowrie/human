@@ -5,6 +5,8 @@ import subprocess
 import sys
 import uuid
 
+from functools import reduce
+
 
 def log(msg, color="white"):
     prefixes = {
@@ -35,7 +37,7 @@ tokens = {
 
 
 def replace_tokens(s):
-    return "".join([s.replace(t, tokens[t]) for t in tokens])
+    return reduce(lambda a,t: a.replace(t, tokens[t]), tokens, s)
 
 
 def parse_spec(fp):
@@ -66,6 +68,13 @@ def rm_script(script):
 def build(src_path, output_path):
     subprocess.check_output(["go", "build", "-o", output_path], cwd=src_path)
 
+def shouldfail():
+    return 'test "$?" = "1"'
+
+def notimpiementedyet():
+    return """rg -i '^@notimplementedyet'"""
+
+
 
 if __name__ == "__main__":
     # each file should be a yaml file
@@ -74,8 +83,13 @@ if __name__ == "__main__":
     path_to_bin = f"{tmpdir}/human"
     path_to_src = "/".join(tmpdir.split("/")[0:-2])
 
+    # Token replacement
     build(path_to_src, path_to_bin)
     tokens["%%human%%"] = path_to_bin
+
+    tokens["%%shouldfail%%"] = shouldfail()
+    tokens["%%notimpiementedyet%%"] = notimpiementedyet()
+
 
     for f in files:
         suite = parse_spec(f)["suite"]
