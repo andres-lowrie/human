@@ -10,7 +10,7 @@ human <direction> <format> <args> <input>
 
 _where_:
 
-`direction`: is one of `into` or `from` indicating what type of input to expect
+`direction`: is one of `-i` or `-f` indicating what type of input to expect
 
 `format`: is one of the formats outlined further down in this document
 
@@ -28,13 +28,13 @@ should allow the direction option to make more sense hopefully:
 
 > Translate human format _into_ machine format for \<input\>
 >
-> `human --into machine-format <input>`
+> `human -i machine-format <input>`
 
 Going the other way it would be:
 
 > Give me human format _from_ this machine-format for \<input\>
 >
-> `human --from machine-format <input>`
+> `human -f machine-format <input>`
 
 ### args
 

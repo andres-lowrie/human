@@ -1,9 +1,6 @@
 human
 ======
 
-@leftoff
-- fix --into and --from options. The unit tests pass but the not the command so there's a bad assumption somewhere that lets the api work but not the cli
-
 [Translate](Translate) stuff from `Machine -> Human` and back again `Human -> Machine`
 
 ## TL;DR
@@ -122,3 +119,5 @@ suite:
 | Token       | Replace with                                |
 | -----       | ------------                                |
 | `%%human%%` | The path to the binary output by `go build` |
+| `%%shouldfail%%` | Will only pass if the `%%human%%` returns non-zero|
+| `%%notimpiementedyet%%` | Will only pass if the `%%human%%` returns the `@notimpiementedyet` strings. This is to write placeholder tests that you want to actually implement later but you don't want tests to fail|

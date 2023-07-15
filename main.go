@@ -41,6 +41,7 @@ func doOutput(a interface{}) {
 	log := io.NewLogger(io.OFF, false)
   log.Debug("Output:")
 	log.Debug(spew.Sdump(a))
+  fmt.Println(a)
 }
 
 func run(log io.Ourlog, args io.CliArgs) {

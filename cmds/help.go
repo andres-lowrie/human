@@ -49,11 +49,12 @@ FORMAT can be any of the following
 
 OPTS
   Are the flags (short options) and parameters (long options) that the CMD or FORMAT wants.
+
   There are also the following global options:
-    --into: You're supplying human and want to translate into machine
-    --from: You're supplying machine and want to translate into human
+    -f: You're supplying machine and want to translate into human (The default)
+    -i: You're supplying human and want to translate into machine
     -v[vvv]: Verbose output; each v increases the verbosity (from info to debug)
-  
+
 ARGS
   This can be positional arguments, path to file(s), or standard in.
   Every FORMAT/CMD defines what it expects,
@@ -111,11 +112,12 @@ func NewHelp() *Help {
 		usage:     "human help (CMD|FORMAT|TOPIC)",
 		shortDesc: "Get usage, examples formats, commands, and topics",
 		longDesc: `
-human has 2 types of actions arguments, a FORMAT and a CMD as a TOPIC that
-dives into naunce and deeper explanations
+human has 2 core types of actions arguments, a FORMAT and a CMD.
 
-A FORMAT is what the human tool can translate into and from and a CMD is any
-action that it can perform that is not a translation.
+A FORMAT is what the human tool can translate into and from
+A CMD is any action that it can perform that is not a translation.
+
+The other non core thing it can do is describe a TOPIC; this is for when you want to dive into naunce and deeper explanations
 
 Get more in depth help for a CMD|FORMAT|TOPIC running "human help {}" and anyone of these:
   %s
