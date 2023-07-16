@@ -31,8 +31,8 @@ type Size struct {
 	// units refers to the suffixes and which standard is being used, SI or IEC.
 	// See the `trans` field for more info
 	units string
-	// unitSuffix refers to the `i` of `b` that makes up the full suffix when
-	// dealing with any size bigger than B
+	// unitSuffix refers to the `i` or `b` that makes up the full suffix when
+	// dealing with any size bigger than Byte, eg k _i_ for kibi or g _b_ for gigabyte
 	unitSuffix string
 	// base refers to mathematical base, eg: base 10 , base 2, base 8, etc.
 	base float64

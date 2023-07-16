@@ -3,10 +3,10 @@ package format
 import (
 	"github.com/andres-lowrie/human/io"
 	"github.com/andres-lowrie/human/parsers"
+	"github.com/davecgh/go-spew/spew"
 )
 
-type Size struct{
-
+type Size struct {
 	name      string
 	usage     string
 	shortDesc string
@@ -14,11 +14,11 @@ type Size struct{
 }
 
 func NewSize() *Size {
-  return &Size{
-    name: "size",
-    usage: "human size [--units (si|iec)] [ARGS]...",
-    shortDesc: "converts continuous numbers into common machine sizes like Mb Gb or converts sizes into number of bytes they represent",
-    longDesc: `
+	return &Size{
+		name:      "size",
+		usage:     "human size [--units (si|iec)] [ARGS]...",
+		shortDesc: "converts continuous numbers into common machine sizes like Mb Gb or converts sizes into number of bytes they represent",
+		longDesc: `
 When "--units" isn't passed, it defaults to "iec" (See tables below for more info).
 
 From Machine:
@@ -72,7 +72,7 @@ Units Breakdown:
   |   r   | ronna  | 10^27 |           
   |   q   | quetta | 10^30 |           
 `,
-  }
+	}
 }
 
 func (s *Size) Name() string {
@@ -99,6 +99,8 @@ func (s *Size) GetParsers() []parsers.Parser {
 }
 
 func (s *Size) Run(direction, input string, args io.CliArgs) (string, error) {
+	log := io.GetLogger(args)
+
 	// We know from the implementation that `iec` is the default so we'll only
 	// check for others and default to `iec` if we find nothing
 	var p parsers.Parser
@@ -110,7 +112,10 @@ func (s *Size) Run(direction, input string, args io.CliArgs) (string, error) {
 	default:
 		p = parsers.NewSize("iec")
 	}
+	log.Debug("Parser: %s", spew.Sdump(p))
 
+	// @todo: change this to only check given the direction we're going
+	// so that we can give back the error
 	if ok, _ := p.CanParseFromMachine(input); direction == "from" && ok {
 		return p.DoFromMachine(input)
 	}

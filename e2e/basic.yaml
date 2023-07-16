@@ -34,12 +34,20 @@ suite:
     # remind me later what I decided on in terms of how to specify direction
     - name: "It should fail if --from (the Option) is used"
       test: |
-        %%human%% --from 100000 | %%notimpiementedyet%% # this should fail because 10000 becomes the value for --from
+        %%human%% --from 100000 | %%notimplementedyet%% # this should fail because 10000 becomes the value for --from
 
     - name: "It should default fail if `direction` passed is unknown"
       test: |
-        %%human%% --foo | %%notimpiementedyet%%
+        %%human%% --foo | %%notimplementedyet%%
 
     - name: "It should be able to discern -i"
       test: |
         %%human%% -i 100,000 | rg '^100000$'
+
+    # Errors
+    # ------------------------------------------------------------------------
+    - name: "It should return non-zero if an error ocurrs"
+      test: |
+        %%human%% size 5foo | %%shouldfail%%
+
+

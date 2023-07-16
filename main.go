@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/andres-lowrie/human/cmds"
 	"github.com/andres-lowrie/human/format"
@@ -39,9 +38,9 @@ func getDirection(args io.CliArgs) Direction {
 // centralize all the writing to stdout here
 func doOutput(a interface{}) {
 	log := io.NewLogger(io.OFF, false)
-  log.Debug("Output:")
+	log.Debug("Output:")
 	log.Debug(spew.Sdump(a))
-  fmt.Println(a)
+	fmt.Println(a)
 }
 
 func run(log io.Ourlog, args io.CliArgs) {
@@ -138,29 +137,19 @@ func run(log io.Ourlog, args io.CliArgs) {
 		return
 	}
 
-	output, _ = c.Run(direction.toStr(), input, args)
+	log.Debug("Input: ", input)
+	// @todo: figure out how to show errors
+  output, err := c.Run(direction.toStr(), input, args)
 	doOutput(output)
+
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 func main() {
 	args := io.ParseCliArgs(os.Args[1:])
-	log := io.NewLogger(io.OFF, false)
-
-	// Figure out if we have to enable the logger
-	if args.Flags["v"] {
-		log = io.NewLogger(io.INFO, true)
-	}
-
-	if len(args.Options["v"]) > 0 {
-		if n, err := strconv.Atoi(args.Options["v"]); err == nil {
-			switch n {
-			case 2:
-				log = io.NewLogger(io.WARN, true)
-			default: // allows users to spam the v's
-				log = io.NewLogger(io.DEBUG, true)
-			}
-		}
-	}
+	log := io.GetLogger(args)
 
 	run(log, args)
 }

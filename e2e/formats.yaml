@@ -1,0 +1,24 @@
+---
+suite:
+  cases:
+    # size
+    # ------------------------------------------------------------------------
+    # @todo: the unit should probably change depending in direction
+    #   when i was working I found myself doing things like `human size -i
+    #   5gb` expecting that to work but it kept throwing an error because the
+    #   units were set to iec.
+    #
+    #   so what I'm thinking is:
+    #     when direction is from, then default to iec
+    #     when direction is into, then default to si
+    - name: "size: It should default to iec"
+      test: |
+        %%human%% size 5210 | tac | head -n1 | rg '^5.1Ki'
+
+    - name: "size: It should accept --units parameter"
+      test: |
+        %%human%% size --units si 5000 | tac | head -n1 | rg '^5.0Kb'
+
+    # - name: "size: It should fail if units are unknown (or skipped)"
+    #   test: |
+    #     %%human%% size --units si 5000 | %%shouldfail%%

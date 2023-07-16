@@ -47,8 +47,7 @@ def parse_spec(fp):
 
 def run(cmd):
     # @TODO make own return type in case I want to change the implementation details
-    proc = subprocess.run([cmd], shell=True, capture_output=True)
-    return proc
+    return subprocess.run([cmd], shell=True, capture_output=True)
 
 
 def create_script_file(cmd, tmpdi):
@@ -71,7 +70,7 @@ def build(src_path, output_path):
 def shouldfail():
     return 'test "$?" = "1"'
 
-def notimpiementedyet():
+def notimplementedyet():
     return """rg -i '^@notimplementedyet'"""
 
 
@@ -88,7 +87,7 @@ if __name__ == "__main__":
     tokens["%%human%%"] = path_to_bin
 
     tokens["%%shouldfail%%"] = shouldfail()
-    tokens["%%notimpiementedyet%%"] = notimpiementedyet()
+    tokens["%%notimplementedyet%%"] = notimplementedyet()
 
 
     for f in files:
@@ -100,12 +99,13 @@ if __name__ == "__main__":
 
             if "test" in case:
                 test = case["test"]
+                defined_shouldfail = "%%shouldfail%%" in test
                 cmd = replace_tokens(test)
                 script = create_script_file(cmd, tmpdir)
                 out = run(script)
 
                 # @TODO add option to only log failures?
-                if out.returncode != 0:
+                if out.returncode != 0 and defined_shouldfail is False:
                     bad(f'Failed: {case["name"]}')
                     print("\tStdOut", out.stdout)
                     print("\tStdErr", out.stderr)
@@ -115,4 +115,5 @@ if __name__ == "__main__":
             if "cleanup" in case:
                 print("handle cleanup")
 
-            rm_script(script)
+            if "E2E_NO_CLEANUP" not in os.environ:
+                rm_script(script)

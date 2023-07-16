@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -87,6 +88,36 @@ func NewLogger(level level, writeOut bool) Ourlog {
 	}
 
 	return l
+}
+
+// GetLogger helper function to provide an instance
+// of a logger that's writing to the correct the
+// place given the user input.
+//
+// @todo: depending on what kind of logging we want
+// to do the in the future and the cost of
+// "initializtio" or whaver we may want to pass this
+// around from function to function but for right
+// now a new instance is okay
+func GetLogger(args CliArgs) Ourlog {
+	log := NewLogger(OFF, false)
+
+	if args.Flags["v"] {
+		log = NewLogger(INFO, true)
+	}
+
+	if len(args.Options["v"]) > 0 {
+		if n, err := strconv.Atoi(args.Options["v"]); err == nil {
+			switch n {
+			case 2:
+				log = NewLogger(WARN, true)
+			default: // allows users to spam the v's
+				log = NewLogger(DEBUG, true)
+			}
+		}
+	}
+
+	return log
 }
 
 // In addition to being the default logger (ie: no logging), this one can also
