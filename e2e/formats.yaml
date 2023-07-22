@@ -19,6 +19,7 @@ suite:
       test: |
         %%human%% size --units si 5000 | tac | head -n1 | rg '^5.0Kb'
 
+        # @notimplementedyet
     # - name: "size: It should fail if units are unknown (or skipped)"
     #   test: |
-    #     %%human%% size --units si 5000 | %%shouldfail%%
+    #     %%human%% size --units 5000 | %%shouldfail%%
