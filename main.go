@@ -10,6 +10,13 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+// @todo move this?
+type ErrUnknownFmt struct{ s string }
+
+func (e ErrUnknownFmt) Error() string {
+	return e.s
+}
+
 type Direction struct {
 	From bool
 	Into bool
@@ -40,6 +47,11 @@ func doOutput(a interface{}) {
 	log := io.NewLogger(io.OFF, false)
 	log.Debug("Output:")
 	log.Debug(spew.Sdump(a))
+
+	if err, ok := a.(error); ok {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	fmt.Println(a)
 }
 
@@ -122,24 +134,26 @@ func run(log io.Ourlog, args io.CliArgs) {
 
 	var output string
 	if format == "" {
+		log.Info("Unknown Format '%s', trying all the handlers", format)
 		for _, c := range handlers {
 			output, _ = c.Run(direction.toStr(), input, args)
 			if output != "" {
 				doOutput(output)
 			}
 		}
-		return
+    return
 	}
 
 	c, ok := handlers[format]
 	if !ok {
-		log.Info("unknown format '%s', nothing to do", format)
+		msg := fmt.Sprintf("unknown format '%s', nothing to do", format)
+		doOutput(ErrUnknownFmt{msg})
 		return
 	}
 
 	log.Debug("Input: ", input)
 	// @todo: figure out how to show errors
-  output, err := c.Run(direction.toStr(), input, args)
+	output, err := c.Run(direction.toStr(), input, args)
 	doOutput(output)
 
 	if err != nil {

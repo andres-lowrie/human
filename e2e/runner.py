@@ -105,7 +105,7 @@ if __name__ == "__main__":
                 out = run(script)
 
                 # @TODO add option to only log failures?
-                if out.returncode != 0 and defined_shouldfail is False:
+                if out.returncode != 0 and defined_shouldfail is True:
                     bad(f'Failed: {case["name"]}')
                     print("\tStdOut", out.stdout)
                     print("\tStdErr", out.stderr)
