@@ -141,7 +141,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 				doOutput(output)
 			}
 		}
-    return
+		return
 	}
 
 	c, ok := handlers[format]
@@ -157,6 +157,7 @@ func run(log io.Ourlog, args io.CliArgs) {
 	doOutput(output)
 
 	if err != nil {
+		log.Debug("There was an error")
 		os.Exit(1)
 	}
 }
