@@ -10,7 +10,7 @@ human <direction> <format> <args> <input>
 
 _where_:
 
-`direction`: is one of `-i` or `-f` indicating what type of input to expect
+`direction`: is one of `-i` (into) or `-f` (from) indicating what type of input to expect
 
 `format`: is one of the formats outlined further down in this document
 
@@ -21,7 +21,7 @@ _where_:
 ### direction
 
 Controls whether the parsers are going to translate the `<input>` into a human
-or machine format and vice versa.
+or machine format or vice versa.
 
 The idea is that the entire command should be read from left to right which
 should allow the direction option to make more sense hopefully:
@@ -44,6 +44,6 @@ possible to keep the calling pattern simple.
 
 ### format
 
-Formats are what human is translating to and from
+Formats are what human is translating into and from
 
 @TODO make a website out of the markdown files , parse and load man pages

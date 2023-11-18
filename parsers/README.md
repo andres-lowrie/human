@@ -25,8 +25,8 @@ is returned.
 The actual string prepartion is done by preparing a template string (using go
 built in template syntax) using the component structs to make decisions in terms
 of what words to use and how to convert from numbers to words. This template
-string is then parsed for each component and then concated to the actual final
-string
+string is then parsed for each component and then concatenated into the actual
+final string
 
 Abstractly like this:
 
